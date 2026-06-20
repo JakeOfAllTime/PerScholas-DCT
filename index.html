@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#101315">
     <title>Data Center Flight Deck</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=5">
-    <link rel="stylesheet" href="./styles.css?v=5">
+    <link rel="manifest" href="./manifest.webmanifest?v=6">
+    <link rel="stylesheet" href="./styles.css?v=6">
   </head>
   <body>
     <div class="app-shell">
@@ -30,22 +30,10 @@
       </header>
 
       <main>
-        <section class="deck-hero" aria-labelledby="hero-title">
-          <div class="hero-copy">
-            <p class="eyebrow">Per Scholas DCT + AI tools</p>
-            <h1 id="hero-title">Turn class notes into ops-ready instincts.</h1>
-            <p class="hero-text">
-              Capture rough thoughts after class, distill them into technician knowledge, then drill with tickets based on your weakest areas.
-            </p>
-            <div class="hero-actions">
-              <a class="button primary" href="#capture">Start Capture</a>
-              <button class="button ghost" id="seed-demo" type="button">Load Demo</button>
-            </div>
-          </div>
-
+        <section class="ops-overview" aria-label="Course topic status overview">
           <div class="rack-stage" aria-label="Animated rack readiness panel">
             <div class="rack-label">
-              <span>AZ-01</span>
+              <span>Study status</span>
               <strong id="readiness-score">72%</strong>
             </div>
             <div class="rack" aria-hidden="true">
@@ -70,33 +58,57 @@
               </svg>
             </div>
           </div>
+          <div class="overview-panel">
+            <div class="panel-header">
+              <h3>Today</h3>
+              <span id="overview-count">0 topics</span>
+            </div>
+            <dl class="mini-stats">
+              <div>
+                <dt>Needs review</dt>
+                <dd id="overview-low">0</dd>
+              </div>
+              <div>
+                <dt>Strong topics</dt>
+                <dd id="overview-strong">0</dd>
+              </div>
+              <div>
+                <dt>Next focus</dt>
+                <dd id="next-drill">Add topic</dd>
+              </div>
+            </dl>
+          </div>
         </section>
 
         <section id="capture" class="workspace-section active-section" aria-labelledby="capture-title">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Daily capture</p>
-              <h2 id="capture-title">Brain dump</h2>
+              <p class="eyebrow">Quick capture</p>
+              <h2 id="capture-title">Add today</h2>
             </div>
             <span class="status-pill" id="storage-status">Local vault ready</span>
           </div>
 
           <div class="capture-grid">
-            <form class="capture-panel" id="capture-form">
-              <label for="note-input">What happened in class or lab?</label>
-              <textarea id="note-input" name="note" rows="11" placeholder="Example: Practiced console access on Cisco gear. Still fuzzy on rollover cable pinout and when to use straight-through. Covered 3-phase PDU load balancing and safety around energized racks."></textarea>
+            <form class="capture-panel topic-form" id="capture-form">
+              <label for="topic-title">Topic title</label>
+              <input id="topic-title" name="title" type="text" placeholder="Example: Subnetting practice, UPS load math, STAR interview answers">
+              <label for="note-input">Notes</label>
+              <textarea id="note-input" name="note" rows="8" placeholder="What was covered? What should you remember? What still feels shaky?"></textarea>
+              <label for="topic-confidence">
+                Confidence
+                <input id="topic-confidence" type="range" min="1" max="5" value="3">
+              </label>
               <div class="capture-controls">
-                <button class="button primary" type="submit">Distill Note</button>
-                <button class="button secondary" id="voice-button" type="button">Voice</button>
+                <button class="button primary" type="submit">Add Topic</button>
                 <button class="button ghost" id="clear-input" type="button">Clear</button>
               </div>
-              <p class="field-note" id="voice-status">Voice capture uses your browser when supported.</p>
             </form>
 
             <aside class="insight-panel" aria-labelledby="today-title">
               <div class="panel-header">
-                <h3 id="today-title">Today signal</h3>
-                <span id="note-count">0 notes</span>
+                <h3 id="today-title">Today status</h3>
+                <span id="note-count">0 topics</span>
               </div>
               <div class="signal-ring" aria-label="Current readiness">
                 <span id="ring-value">0%</span>
@@ -107,12 +119,8 @@
                   <dd id="weakest-area">None yet</dd>
                 </div>
                 <div>
-                  <dt>Open questions</dt>
+                  <dt>Needs review</dt>
                   <dd id="open-question-count">0</dd>
-                </div>
-                <div>
-                  <dt>Next drill</dt>
-                  <dd id="next-drill">Add notes</dd>
                 </div>
               </dl>
             </aside>
@@ -137,7 +145,7 @@
             <div class="week-panel">
               <div class="panel-header">
                 <h3 id="week-range">This week</h3>
-                <span id="week-note-count">0 notes</span>
+                <span id="week-note-count">0 topics</span>
               </div>
               <div class="week-calendar" id="week-calendar" aria-label="Learning calendar"></div>
             </div>
@@ -145,13 +153,18 @@
             <aside class="day-panel" aria-labelledby="selected-day-title">
               <div class="panel-header">
                 <h3 id="selected-day-title">Selected day</h3>
-                <span id="selected-day-count">0 notes</span>
+                <span id="selected-day-count">0 topics</span>
               </div>
-              <div id="day-review" class="day-review empty-state">Pick a day with notes to review what you learned.</div>
-              <div class="day-confidence">
-                <h3>Confidence tune-up</h3>
-                <div id="day-confidence-list"></div>
-              </div>
+              <form class="day-topic-form topic-form" id="day-topic-form">
+                <input id="day-topic-title" type="text" placeholder="Topic title">
+                <textarea id="day-topic-notes" rows="4" placeholder="Short notes, links, reminders, or homework focus"></textarea>
+                <label>
+                  Confidence
+                  <input id="day-topic-confidence" type="range" min="1" max="5" value="3">
+                </label>
+                <button class="button primary" type="submit">Add To Day</button>
+              </form>
+              <div id="day-review" class="day-review empty-state">Pick a day and add the topics covered in class or study.</div>
             </aside>
           </div>
         </section>
@@ -159,25 +172,24 @@
         <section id="review" class="workspace-section" aria-labelledby="review-title">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Weekly review</p>
-              <h2 id="review-title">Readiness board</h2>
+              <p class="eyebrow">Study focus</p>
+              <h2 id="review-title">Needs review</h2>
             </div>
-            <button class="button secondary" id="generate-flashcards" type="button">Build Drill</button>
+            <button class="button secondary" id="review-this-week" type="button">This Week</button>
           </div>
 
-          <div class="domain-grid" id="domain-grid"></div>
           <div class="review-grid">
             <div class="review-panel">
               <div class="panel-header">
-                <h3>Flash drill</h3>
-                <span id="flash-count">0 cards</span>
+                <h3>Low confidence topics</h3>
+                <span id="flash-count">0 topics</span>
               </div>
-              <div id="flashcards" class="flash-list empty-state">Add a note or load the demo to generate active-recall cards.</div>
+              <div id="flashcards" class="flash-list empty-state">Topics rated 1-3 will show here.</div>
             </div>
             <div class="review-panel">
               <div class="panel-header">
-                <h3>Knowledge gaps</h3>
-                <span>Auto detected</span>
+                <h3>Weekly snapshot</h3>
+                <span id="gap-count">0 total</span>
               </div>
               <ul id="gap-list" class="gap-list"></ul>
             </div>
@@ -197,10 +209,10 @@
             <article class="ticket-panel" id="ticket-panel">
               <div class="ticket-meta">
                 <span id="ticket-id">Ticket standby</span>
-                <strong id="ticket-domain">Add notes</strong>
+                <strong id="ticket-domain">Add topics</strong>
               </div>
               <h3 id="ticket-title">Generate a ticket from your current weak spot.</h3>
-              <p id="ticket-body">The simulator will use your recent captures and confidence ratings to create a realistic data center incident.</p>
+              <p id="ticket-body">The simulator will use your low-confidence topics to frame a practice incident.</p>
               <div class="ticket-tags" id="ticket-tags"></div>
             </article>
 
@@ -231,10 +243,10 @@
           <div class="vault-grid">
             <div class="timeline-panel">
               <div class="panel-header">
-                <h3>Captured notes</h3>
+                <h3>Captured topics</h3>
                 <span id="vault-count">0 total</span>
               </div>
-              <div id="note-timeline" class="timeline empty-state">No notes captured yet.</div>
+              <div id="note-timeline" class="timeline empty-state">No topics captured yet.</div>
             </div>
             <div class="markdown-panel">
               <div class="panel-header">
@@ -267,21 +279,6 @@
       </main>
     </div>
 
-    <template id="domain-card-template">
-      <article class="domain-card">
-        <div class="domain-topline">
-          <h3></h3>
-          <span></span>
-        </div>
-        <div class="meter"><i></i></div>
-        <label>
-          Confidence
-          <input type="range" min="1" max="5" value="3">
-        </label>
-        <ul></ul>
-      </article>
-    </template>
-
-    <script src="./app.js?v=5" defer></script>
+    <script src="./app.js?v=6" defer></script>
   </body>
 </html>

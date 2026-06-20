@@ -1,141 +1,92 @@
 const STORAGE_KEY = "dc-flight-deck-v1";
 
-const domains = [
+const topicSignals = [
+  { id: "networking", name: "Networking", color: "#42d9c8", keywords: ["network", "subnet", "vlan", "switch", "router", "fiber", "cable", "console", "dhcp", "dns", "ip", "sfp", "ethernet"] },
+  { id: "power", name: "Power", color: "#ffbf69", keywords: ["power", "pdu", "ups", "phase", "wye", "delta", "voltage", "amp", "circuit", "load", "breaker"] },
+  { id: "cooling", name: "Cooling", color: "#9ef06f", keywords: ["cooling", "airflow", "hot aisle", "cold aisle", "temperature", "humidity", "crac", "containment"] },
+  { id: "hardware", name: "Hardware", color: "#d28cff", keywords: ["server", "rack", "rail", "cpu", "ram", "drive", "raid", "bios", "bmc", "idrac", "ilo"] },
+  { id: "professional", name: "Professional", color: "#ff6b6b", keywords: ["interview", "resume", "star", "professional", "communication", "ticket", "escalate", "safety"] }
+];
+
+const demoTopics = [
   {
-    id: "networking",
-    name: "Networking",
-    color: "#42d9c8",
-    keywords: ["cisco", "switch", "router", "vlan", "trunk", "fiber", "ethernet", "console", "serial", "ip", "subnet", "dns", "dhcp", "patch", "cable", "sfp", "port", "rollover", "straight-through", "straight through", "rj45"]
+    title: "Cisco console access",
+    details: "Practiced console cable setup. Still need to remember rollover versus straight-through and when console is separate from Ethernet.",
+    confidence: 2
   },
   {
-    id: "power",
-    name: "Power",
-    color: "#ffbf69",
-    keywords: ["pdu", "ups", "phase", "3-phase", "three-phase", "delta", "wye", "voltage", "amp", "breaker", "circuit", "load", "kva", "kw", "transformer", "ground"]
+    title: "Three-phase PDU load math",
+    details: "Covered Wye, Delta, PDU load balancing, and why moving power cords requires label/load checks.",
+    confidence: 2
   },
   {
-    id: "cooling",
-    name: "Cooling",
-    color: "#9ef06f",
-    keywords: ["cooling", "airflow", "hot aisle", "cold aisle", "hvac", "crac", "humidity", "temperature", "chiller", "tile", "containment"]
-  },
-  {
-    id: "hardware",
-    name: "Server Hardware",
-    color: "#d28cff",
-    keywords: ["server", "rack", "rail", "cpu", "ram", "memory", "disk", "drive", "raid", "bios", "bmc", "idrac", "ilo", "mount", "chassis", "nvme"]
-  },
-  {
-    id: "safety",
-    name: "Safety + Tools",
-    color: "#ff6b6b",
-    keywords: ["safety", "esd", "lockout", "tagout", "ppe", "ladder", "label", "ticket", "change", "multimeter", "toner", "torque", "driver", "adapter", "procedure", "escalate"]
+    title: "Hot aisle and cold aisle airflow",
+    details: "Basic layout makes sense. Need more reps spotting blocked exhaust and messy cable management.",
+    confidence: 3
   }
 ];
 
-const demoText = `Practiced Cisco console access today. We talked about rollover cable versus straight-through patch cables, and I had to use a USB serial adapter on my Mac. Still fuzzy on the pinout and when the console port is different from Ethernet.
-
-Covered PDU basics, three-phase load balancing, Wye versus Delta, and why you do not just move power cords without checking labels and load. I can repeat the terms but I am not confident on the math yet.
-
-In lab we looked at rack units, rails, labeling, and airflow. Hot aisle and cold aisle made sense, but I want more practice recognizing bad cable management and blocked exhaust.`;
-
-const tickets = {
-  networking: [
-    {
-      title: "Console works, uplink is dark",
-      body: "After a scheduled migration, Rack B12 switch responds over console but the uplink to the aggregation switch is down. Link lights are off on Gi0/24. The ticket notes a new patch cable and an SFP swap.",
-      tags: ["console", "link lights", "cabling", "SFP"]
-    },
-    {
-      title: "Server moved, network unreachable",
-      body: "A server was moved to another rack and now cannot reach the imaging network. The port is live, but DHCP is not assigning an address.",
-      tags: ["DHCP", "VLAN", "patch panel", "change validation"]
-    }
-  ],
-  power: [
-    {
-      title: "PDU load warning after install",
-      body: "A new 2U server was installed and the rack PDU is warning near threshold on one phase. The change ticket only lists the server model, not the measured load.",
-      tags: ["PDU", "phase balance", "load", "escalation"]
-    },
-    {
-      title: "UPS branch shows uneven draw",
-      body: "Monitoring shows one UPS branch running hotter than expected after equipment was shifted between racks. No outage yet, but the trend is worsening.",
-      tags: ["UPS", "branch circuit", "trend", "safety"]
-    }
-  ],
-  cooling: [
-    {
-      title: "Rack temperature climbs overnight",
-      body: "Rack C07 has rising inlet temperature alarms after a cabling cleanup. Servers remain online, but fan speed is increasing.",
-      tags: ["airflow", "hot aisle", "blanking", "obstruction"]
-    }
-  ],
-  hardware: [
-    {
-      title: "Server will not complete POST",
-      body: "A newly racked server powers on, fans spin up, but POST does not complete. The remote management controller is reachable.",
-      tags: ["POST", "BMC", "memory", "seating"]
-    }
-  ],
-  safety: [
-    {
-      title: "Urgent request to move power cords",
-      body: "A requester asks you to quickly move two power cords to clear space before a vendor arrives. Labels are hard to read and the rack is live.",
-      tags: ["safety", "change control", "labels", "escalation"]
-    }
-  ]
-};
-
-const coachingChecks = [
-  { terms: ["safety", "ppe", "energized", "change", "ticket", "approval", "label"], label: "Safety and change control" },
-  { terms: ["verify", "check", "confirm", "inspect", "identify", "document"], label: "Verification before action" },
-  { terms: ["cable", "link", "light", "port", "sfp", "console", "vlan", "dhcp", "patch"], label: "Layered network checks" },
-  { terms: ["pdu", "phase", "load", "amp", "breaker", "ups", "circuit"], label: "Power awareness" },
-  { terms: ["airflow", "temperature", "hot aisle", "cold aisle", "blocked", "fan"], label: "Cooling awareness" },
-  { terms: ["escalate", "senior", "facilities", "network team", "stop"], label: "Escalation judgment" }
+const tickets = [
+  {
+    title: "Explain it to a lead tech",
+    body: "A lead asks you to explain the topic clearly, identify the risk if it is done wrong, and name your first verification step.",
+    tags: ["explain", "risk", "verify"]
+  },
+  {
+    title: "Lab check before sign-off",
+    body: "You are asked to sign off on a lab involving this topic. What evidence would you gather before saying you understand it?",
+    tags: ["lab", "evidence", "confidence"]
+  },
+  {
+    title: "Interview follow-up",
+    body: "An interviewer asks how you would troubleshoot a problem related to this topic. Give a safe, ordered answer.",
+    tags: ["interview", "sequence", "safety"]
+  }
 ];
 
 let state = loadState();
-let currentTicket = null;
-let recognition = null;
 let selectedDateKey = dateKey(new Date());
 let visibleWeekStart = startOfWeek(new Date());
+let currentTicket = null;
 
 const els = {
   sections: document.querySelectorAll(".workspace-section"),
   navLinks: document.querySelectorAll(".nav-link"),
+  storageStatus: document.querySelector("#storage-status"),
+  readinessScore: document.querySelector("#readiness-score"),
+  overviewCount: document.querySelector("#overview-count"),
+  overviewLow: document.querySelector("#overview-low"),
+  overviewStrong: document.querySelector("#overview-strong"),
+  nextDrill: document.querySelector("#next-drill"),
   captureForm: document.querySelector("#capture-form"),
+  topicTitle: document.querySelector("#topic-title"),
   noteInput: document.querySelector("#note-input"),
+  topicConfidence: document.querySelector("#topic-confidence"),
   clearInput: document.querySelector("#clear-input"),
-  voiceButton: document.querySelector("#voice-button"),
-  voiceStatus: document.querySelector("#voice-status"),
-  seedDemo: document.querySelector("#seed-demo"),
+  noteCount: document.querySelector("#note-count"),
+  ringValue: document.querySelector("#ring-value"),
+  signalRing: document.querySelector(".signal-ring"),
+  weakestArea: document.querySelector("#weakest-area"),
+  openQuestionCount: document.querySelector("#open-question-count"),
   weekRange: document.querySelector("#week-range"),
   weekNoteCount: document.querySelector("#week-note-count"),
   weekCalendar: document.querySelector("#week-calendar"),
-  selectedDayTitle: document.querySelector("#selected-day-title"),
-  selectedDayCount: document.querySelector("#selected-day-count"),
-  dayReview: document.querySelector("#day-review"),
-  dayConfidenceList: document.querySelector("#day-confidence-list"),
   prevWeek: document.querySelector("#prev-week"),
   todayWeek: document.querySelector("#today-week"),
   nextWeek: document.querySelector("#next-week"),
   exportWeek: document.querySelector("#export-week"),
-  domainGrid: document.querySelector("#domain-grid"),
-  noteCount: document.querySelector("#note-count"),
-  vaultCount: document.querySelector("#vault-count"),
-  storageStatus: document.querySelector("#storage-status"),
-  weakestArea: document.querySelector("#weakest-area"),
-  openQuestionCount: document.querySelector("#open-question-count"),
-  nextDrill: document.querySelector("#next-drill"),
-  readinessScore: document.querySelector("#readiness-score"),
-  ringValue: document.querySelector("#ring-value"),
-  signalRing: document.querySelector(".signal-ring"),
-  gapList: document.querySelector("#gap-list"),
+  selectedDayTitle: document.querySelector("#selected-day-title"),
+  selectedDayCount: document.querySelector("#selected-day-count"),
+  dayTopicForm: document.querySelector("#day-topic-form"),
+  dayTopicTitle: document.querySelector("#day-topic-title"),
+  dayTopicNotes: document.querySelector("#day-topic-notes"),
+  dayTopicConfidence: document.querySelector("#day-topic-confidence"),
+  dayReview: document.querySelector("#day-review"),
+  reviewThisWeek: document.querySelector("#review-this-week"),
   flashcards: document.querySelector("#flashcards"),
   flashCount: document.querySelector("#flash-count"),
-  generateFlashcards: document.querySelector("#generate-flashcards"),
+  gapList: document.querySelector("#gap-list"),
+  gapCount: document.querySelector("#gap-count"),
   newTicket: document.querySelector("#new-ticket"),
   ticketId: document.querySelector("#ticket-id"),
   ticketDomain: document.querySelector("#ticket-domain"),
@@ -146,6 +97,7 @@ const els = {
   ticketResponse: document.querySelector("#ticket-response"),
   clearResponse: document.querySelector("#clear-response"),
   gradeOutput: document.querySelector("#grade-output"),
+  vaultCount: document.querySelector("#vault-count"),
   noteTimeline: document.querySelector("#note-timeline"),
   markdownPreview: document.querySelector("#markdown-preview"),
   exportMd: document.querySelector("#export-md"),
@@ -153,61 +105,77 @@ const els = {
   importDataTrigger: document.querySelector("#import-data-trigger"),
   importData: document.querySelector("#import-data"),
   backupStatus: document.querySelector("#backup-status"),
-  weeklyArchive: document.querySelector("#weekly-archive"),
   archiveCount: document.querySelector("#archive-count"),
+  weeklyArchive: document.querySelector("#weekly-archive"),
   resetVault: document.querySelector("#reset-vault")
 };
 
 function loadState() {
-  const fallback = {
-    notes: [],
-    confidence: Object.fromEntries(domains.map((domain) => [domain.id, 3])),
-    flashcards: [],
-    lastBackupAt: null
-  };
+  const fallback = { topics: [], notes: [], lastBackupAt: null };
 
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!saved || !Array.isArray(saved.notes)) return fallback;
-    return {
-      ...fallback,
-      ...saved,
-      confidence: { ...fallback.confidence, ...(saved.confidence || {}) }
-    };
+    if (!saved) return fallback;
+    const next = { ...fallback, ...saved };
+
+    if (!Array.isArray(next.topics)) next.topics = [];
+    if (!next.topics.length && Array.isArray(next.notes) && next.notes.length) {
+      next.topics = migrateNotesToTopics(next.notes, saved.confidence);
+    }
+    next.topics = next.topics.map(normalizeTopic);
+
+    return next;
   } catch {
     return fallback;
   }
 }
 
+function averageLegacyConfidence(confidence = {}, ids = []) {
+  const values = ids.map((id) => Number(confidence[id])).filter(Boolean);
+  if (!values.length) return 3;
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function migrateNotesToTopics(notes = [], confidence = {}) {
+  return notes.map((note) => normalizeTopic({
+    id: note.id || `topic-${crypto.randomUUID()}`,
+    title: note.summary?.slice(0, 70) || "Imported note",
+    details: note.raw || note.summary || "",
+    confidence: averageLegacyConfidence(confidence, note.domains),
+    date: dateKey(note.createdAt || new Date()),
+    createdAt: note.createdAt || new Date().toISOString(),
+    updatedAt: note.createdAt || new Date().toISOString(),
+    tags: note.tags || []
+  }));
+}
+
+function normalizeTopic(topic) {
+  const createdAt = topic.createdAt || new Date().toISOString();
+  return {
+    id: topic.id || `topic-${crypto.randomUUID()}`,
+    title: topic.title || "Untitled topic",
+    details: topic.details || "",
+    confidence: Math.min(5, Math.max(1, Number(topic.confidence || 3))),
+    date: topic.date || dateKey(createdAt),
+    createdAt,
+    updatedAt: topic.updatedAt || createdAt,
+    tags: Array.isArray(topic.tags) ? topic.tags : []
+  };
+}
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   els.storageStatus.textContent = "Saved locally";
-  if (els.backupStatus) {
-    els.backupStatus.textContent = state.lastBackupAt ? `Backed up ${formatShortDate(state.lastBackupAt)}` : "Browser vault";
-  }
+  els.backupStatus.textContent = state.lastBackupAt ? `Backed up ${formatShortDate(state.lastBackupAt)}` : "Browser vault";
   window.setTimeout(() => {
     els.storageStatus.textContent = "Local vault ready";
-  }, 1200);
-}
-
-function normalize(text) {
-  return text.toLowerCase();
-}
-
-function splitSentences(text) {
-  return text
-    .replace(/\s+/g, " ")
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean);
+  }, 1000);
 }
 
 function dateKey(date) {
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
   const value = new Date(date);
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
 }
 
 function dateFromKey(key) {
@@ -216,10 +184,9 @@ function dateFromKey(key) {
 }
 
 function startOfWeek(date) {
-  const value = new Date(date);
+  const value = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? dateFromKey(date) : new Date(date);
   value.setHours(0, 0, 0, 0);
-  const offset = value.getDay();
-  value.setDate(value.getDate() - offset);
+  value.setDate(value.getDate() - value.getDay());
   return value;
 }
 
@@ -230,7 +197,8 @@ function addDays(date, days) {
 }
 
 function formatShortDate(date) {
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+  const value = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? dateFromKey(date) : new Date(date);
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(value);
 }
 
 function weekKey(date) {
@@ -241,152 +209,91 @@ function weekLabel(weekStart) {
   return `${formatShortDate(weekStart)} - ${formatShortDate(addDays(weekStart, 6))}`;
 }
 
-function detectDomains(text) {
-  const lower = normalize(text);
-  return domains.map((domain) => {
-    const hits = domain.keywords.filter((keyword) => lower.includes(keyword));
-    return { ...domain, hits };
-  }).filter((domain) => domain.hits.length);
+function topicsForDay(key) {
+  return state.topics.filter((topic) => topic.date === key).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 }
 
-function extractQuestions(text) {
-  const sentences = splitSentences(text);
-  const uncertainty = ["confused", "fuzzy", "unsure", "not confident", "still learning", "want more practice", "need practice"];
-  return sentences.filter((sentence) => {
-    const lower = normalize(sentence);
-    return sentence.includes("?") || uncertainty.some((term) => lower.includes(term));
-  }).slice(0, 5);
+function topicsForWeek(weekStart) {
+  const days = Array.from({ length: 7 }, (_, index) => dateKey(addDays(weekStart, index)));
+  return state.topics.filter((topic) => days.includes(topic.date));
 }
 
-function extractCommands(text) {
-  const commandPatterns = [
-    /\bshow\s+[\w\s/-]+/gi,
-    /\bping\s+[\w.:-]+/gi,
-    /\bipconfig\b[\w\s/-]*/gi,
-    /\bifconfig\b[\w\s/-]*/gi,
-    /\btraceroute\s+[\w.:-]+/gi,
-    /\bssh\s+[\w@.:-]+/gi
-  ];
-  return [...new Set(commandPatterns.flatMap((pattern) => text.match(pattern) || []))]
-    .map((command) => command.trim())
-    .slice(0, 6);
+function getArchiveWeeks() {
+  return [...new Set(state.topics.map((topic) => weekKey(topic.date)))]
+    .map(dateFromKey)
+    .sort((a, b) => b - a);
 }
 
-function distillNote(text) {
-  const sentences = splitSentences(text);
-  const matchedDomains = detectDomains(text);
-  const domainIds = matchedDomains.length ? matchedDomains.map((domain) => domain.id) : ["safety"];
-  const tags = [...new Set(matchedDomains.flatMap((domain) => domain.hits))]
-    .slice(0, 10)
-    .map((tag) => tag.replace(/\b\w/g, (letter) => letter.toUpperCase()));
-  const questions = extractQuestions(text);
-  const commands = extractCommands(text);
-  const concepts = matchedDomains.flatMap((domain) => domain.hits.slice(0, 3))
-    .filter((value, index, array) => array.indexOf(value) === index)
-    .slice(0, 8);
+function detectSignals(topic) {
+  const text = `${topic.title} ${topic.details}`.toLowerCase();
+  return topicSignals.filter((signal) => signal.keywords.some((keyword) => text.includes(keyword)));
+}
 
-  return {
-    id: `note-${Date.now()}`,
+function getStatus(topics) {
+  if (!topics.length) return "empty";
+  const min = Math.min(...topics.map((topic) => Number(topic.confidence || 3)));
+  if (min <= 2) return "low";
+  if (min === 3) return "mid";
+  return "high";
+}
+
+function averageConfidence(topics = state.topics) {
+  if (!topics.length) return 0;
+  return Math.round((topics.reduce((sum, topic) => sum + Number(topic.confidence || 3), 0) / (topics.length * 5)) * 100);
+}
+
+function lowTopics() {
+  return state.topics
+    .filter((topic) => Number(topic.confidence || 3) <= 3)
+    .sort((a, b) => Number(a.confidence) - Number(b.confidence) || new Date(b.updatedAt) - new Date(a.updatedAt));
+}
+
+function addTopic({ title, details, confidence, date }) {
+  const cleanTitle = title.trim();
+  if (!cleanTitle) return;
+
+  state.topics.unshift({
+    id: `topic-${crypto.randomUUID()}`,
+    title: cleanTitle,
+    details: details.trim(),
+    confidence: Number(confidence || 3),
+    date,
     createdAt: new Date().toISOString(),
-    raw: text.trim(),
-    summary: sentences.slice(0, 2).join(" ") || text.trim(),
-    domains: domainIds,
-    tags,
-    questions,
-    commands,
-    concepts
-  };
-}
-
-function addNote(text) {
-  const note = distillNote(text);
-  state.notes.unshift(note);
-  selectedDateKey = dateKey(note.createdAt);
-  visibleWeekStart = startOfWeek(note.createdAt);
-
-  note.domains.forEach((domainId) => {
-    const uncertainty = note.questions.length > 0;
-    state.confidence[domainId] = Math.max(1, Math.min(5, uncertainty ? state.confidence[domainId] - 1 : state.confidence[domainId]));
+    updatedAt: new Date().toISOString(),
+    tags: []
   });
-
-  buildFlashcards();
+  selectedDateKey = date;
+  visibleWeekStart = startOfWeek(date);
   saveState();
   render();
 }
 
-function getDomainStats(domainId) {
-  const notes = state.notes.filter((note) => note.domains.includes(domainId));
-  const terms = [...new Set(notes.flatMap((note) => note.concepts.concat(note.tags)))]
-    .filter(Boolean)
-    .slice(0, 6);
-  const questions = notes.flatMap((note) => note.questions);
-  return { notes, terms, questions };
-}
-
-function getWeakestDomain() {
-  return domains.reduce((weakest, domain) => {
-    const score = state.confidence[domain.id] || 3;
-    const weakestScore = state.confidence[weakest.id] || 3;
-    return score < weakestScore ? domain : weakest;
-  }, domains[0]);
-}
-
-function readiness() {
-  const total = domains.reduce((sum, domain) => sum + Number(state.confidence[domain.id] || 3), 0);
-  return Math.round((total / (domains.length * 5)) * 100);
-}
-
-function buildFlashcards() {
-  const weak = getWeakestDomain();
-  const weakStats = getDomainStats(weak.id);
-  const cards = [];
-
-  weakStats.terms.slice(0, 4).forEach((term) => {
-    cards.push({
-      q: `Explain ${term} like you are answering a technician interview question.`,
-      a: `Use your notes to define it, name where it appears in the data center, and describe one mistake to avoid.`
-    });
-  });
-
-  weakStats.questions.slice(0, 3).forEach((question) => {
-    cards.push({
-      q: question,
-      a: "Answer from memory first, then verify against class material or lab notes."
-    });
-  });
-
-  if (!cards.length) {
-    cards.push(
-      {
-        q: "What should you verify before touching power or network cabling in a rack?",
-        a: "Confirm the ticket, labels, device identity, impact, safety conditions, and escalation path."
-      },
-      {
-        q: "What makes a troubleshooting response strong?",
-        a: "Start with safety, gather evidence, test one layer at a time, document findings, and escalate at the right point."
-      }
-    );
-  }
-
-  state.flashcards = cards.slice(0, 6);
+function updateTopic(id, updates) {
+  const topic = state.topics.find((item) => item.id === id);
+  if (!topic) return;
+  Object.assign(topic, updates, { updatedAt: new Date().toISOString() });
   saveState();
-  renderFlashcards();
+  render();
+}
+
+function deleteTopic(id) {
+  state.topics = state.topics.filter((topic) => topic.id !== id);
+  saveState();
+  render();
 }
 
 function render() {
   renderNavigation();
   renderStats();
-  renderDomains();
   renderWeek();
-  renderGaps();
-  renderFlashcards();
+  renderReview();
   renderTimeline();
   renderMarkdown();
   renderArchive();
 }
 
 function renderNavigation() {
-  const active = location.hash || "#capture";
+  const active = location.hash || "#week";
   els.sections.forEach((section) => {
     section.classList.toggle("active-section", `#${section.id}` === active);
   });
@@ -396,86 +303,52 @@ function renderNavigation() {
 }
 
 function renderStats() {
-  const percent = readiness();
-  const weak = getWeakestDomain();
-  const openQuestions = state.notes.flatMap((note) => note.questions).length;
+  const todayTopics = topicsForDay(dateKey(new Date()));
+  const weak = lowTopics()[0];
+  const percent = averageConfidence();
+  const low = lowTopics().length;
+  const strong = state.topics.filter((topic) => Number(topic.confidence) >= 4).length;
 
-  els.noteCount.textContent = `${state.notes.length} ${state.notes.length === 1 ? "note" : "notes"}`;
-  els.vaultCount.textContent = `${state.notes.length} total`;
-  els.weakestArea.textContent = state.notes.length ? weak.name : "None yet";
-  els.openQuestionCount.textContent = String(openQuestions);
-  els.nextDrill.textContent = state.notes.length ? `${weak.name} ticket` : "Add notes";
   els.readinessScore.textContent = `${percent}%`;
   els.ringValue.textContent = `${percent}%`;
   els.signalRing.style.setProperty("--value", `${percent * 3.6}deg`);
-}
-
-function renderDomains() {
-  const template = document.querySelector("#domain-card-template");
-  els.domainGrid.innerHTML = "";
-
-  domains.forEach((domain) => {
-    const card = template.content.firstElementChild.cloneNode(true);
-    const confidence = Number(state.confidence[domain.id] || 3);
-    const stats = getDomainStats(domain.id);
-
-    card.querySelector("h3").textContent = domain.name;
-    card.querySelector(".domain-topline span").textContent = `${stats.notes.length} notes`;
-    card.querySelector(".meter i").style.width = `${confidence * 20}%`;
-    card.querySelector(".meter i").style.background = `linear-gradient(90deg, #ff6b6b, ${domain.color})`;
-    card.style.borderColor = `${domain.color}44`;
-
-    const range = card.querySelector("input");
-    range.value = confidence;
-    range.setAttribute("aria-label", `${domain.name} confidence`);
-    range.addEventListener("input", () => {
-      state.confidence[domain.id] = Number(range.value);
-      saveState();
-      render();
-    });
-
-    const list = card.querySelector("ul");
-    const listItems = stats.terms.length ? stats.terms.slice(0, 3) : ["No captured terms yet"];
-    listItems.forEach((item) => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      list.append(li);
-    });
-
-    els.domainGrid.append(card);
-  });
+  els.overviewCount.textContent = `${todayTopics.length} ${todayTopics.length === 1 ? "topic" : "topics"}`;
+  els.overviewLow.textContent = String(todayTopics.filter((topic) => Number(topic.confidence) <= 3).length);
+  els.overviewStrong.textContent = String(todayTopics.filter((topic) => Number(topic.confidence) >= 4).length);
+  els.noteCount.textContent = `${todayTopics.length} ${todayTopics.length === 1 ? "topic" : "topics"}`;
+  els.vaultCount.textContent = `${state.topics.length} total`;
+  els.weakestArea.textContent = weak ? weak.title : "None yet";
+  els.openQuestionCount.textContent = String(low);
+  els.nextDrill.textContent = weak ? weak.title : "Add topic";
 }
 
 function renderWeek() {
   const weekDays = Array.from({ length: 7 }, (_, index) => addDays(visibleWeekStart, index));
-  const weekEnd = addDays(visibleWeekStart, 6);
-  const weekNotes = state.notes.filter((note) => {
-    const key = dateKey(note.createdAt);
-    return weekDays.some((day) => dateKey(day) === key);
-  });
+  const weekTopics = topicsForWeek(visibleWeekStart);
 
   els.weekRange.textContent = weekLabel(visibleWeekStart);
-  els.weekNoteCount.textContent = `${weekNotes.length} ${weekNotes.length === 1 ? "note" : "notes"}`;
+  els.weekNoteCount.textContent = `${weekTopics.length} ${weekTopics.length === 1 ? "topic" : "topics"}`;
   els.weekCalendar.innerHTML = "";
 
   weekDays.forEach((day) => {
     const key = dateKey(day);
-    const dayNotes = notesForDay(key);
-    const domainIds = [...new Set(dayNotes.flatMap((note) => note.domains))];
+    const dayTopics = topicsForDay(key);
+    const status = getStatus(dayTopics);
+    const lowCount = dayTopics.filter((topic) => Number(topic.confidence) <= 3).length;
+    const signals = [...new Set(dayTopics.flatMap((topic) => detectSignals(topic).map((signal) => signal.id)))]
+      .map((id) => topicSignals.find((signal) => signal.id === id))
+      .filter(Boolean);
+
     const button = document.createElement("button");
-    button.className = "day-card";
+    button.className = `day-card status-${status}`;
     button.type = "button";
     button.classList.toggle("is-selected", key === selectedDateKey);
     button.classList.toggle("is-today", key === dateKey(new Date()));
-    button.setAttribute("aria-pressed", key === selectedDateKey ? "true" : "false");
     button.innerHTML = `
       <span>${new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day)}</span>
       <strong>${day.getDate()}</strong>
-      <small>${dayNotes.length} ${dayNotes.length === 1 ? "note" : "notes"}</small>
-      <div class="domain-dots">${domainIds.map((id) => {
-        const domain = domains.find((item) => item.id === id);
-        return `<i style="background:${domain?.color || "#42d9c8"}; color:${domain?.color || "#42d9c8"}"></i>`;
-      }).join("")}</div>
+      <small>${dayTopics.length} ${dayTopics.length === 1 ? "topic" : "topics"}${lowCount ? ` · ${lowCount} review` : ""}</small>
+      <div class="domain-dots">${signals.map((signal) => `<i style="background:${signal.color}; color:${signal.color}"></i>`).join("")}</div>
     `;
     button.addEventListener("click", () => {
       selectedDateKey = key;
@@ -487,136 +360,111 @@ function renderWeek() {
   renderSelectedDay();
 }
 
-function notesForDay(key) {
-  return state.notes.filter((note) => dateKey(note.createdAt) === key);
-}
-
-function notesForWeek(weekStart) {
-  const startKey = dateKey(weekStart);
-  const weekDays = Array.from({ length: 7 }, (_, index) => dateKey(addDays(weekStart, index)));
-  return state.notes.filter((note) => weekDays.includes(dateKey(note.createdAt)) || weekKey(note.createdAt) === startKey);
-}
-
-function getArchiveWeeks() {
-  return [...new Set(state.notes.map((note) => weekKey(note.createdAt)))]
-    .map(dateFromKey)
-    .sort((a, b) => b - a);
-}
-
 function renderSelectedDay() {
   const selectedDate = dateFromKey(selectedDateKey);
-  const dayNotes = notesForDay(selectedDateKey);
-  const dayDomains = new Set(dayNotes.flatMap((note) => note.domains));
-
-  els.selectedDayTitle.textContent = new Intl.DateTimeFormat(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric"
-  }).format(selectedDate);
-  els.selectedDayCount.textContent = `${dayNotes.length} ${dayNotes.length === 1 ? "note" : "notes"}`;
-
+  const dayTopics = topicsForDay(selectedDateKey);
+  els.selectedDayTitle.textContent = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(selectedDate);
+  els.selectedDayCount.textContent = `${dayTopics.length} ${dayTopics.length === 1 ? "topic" : "topics"}`;
   els.dayReview.innerHTML = "";
-  els.dayReview.classList.toggle("empty-state", !dayNotes.length);
+  els.dayReview.classList.toggle("empty-state", !dayTopics.length);
 
-  if (!dayNotes.length) {
-    els.dayReview.textContent = "No captures for this day yet.";
-  } else {
-    dayNotes.forEach((note) => {
-      const card = document.createElement("article");
-      card.className = "day-note";
-      const questions = note.questions.length
-        ? `<ul>${note.questions.map((question) => `<li>${escapeHtml(question)}</li>`).join("")}</ul>`
-        : "";
-      card.innerHTML = `
-        <strong>${escapeHtml(note.domains.map((id) => domains.find((domain) => domain.id === id)?.name || id).join(", "))}</strong>
-        <p>${escapeHtml(note.summary)}</p>
-        ${questions}
-      `;
-      els.dayReview.append(card);
-    });
+  if (!dayTopics.length) {
+    els.dayReview.textContent = "Add the topics covered this day. Keep it short enough that you will actually use it.";
+    return;
   }
 
-  els.dayConfidenceList.innerHTML = "";
-  domains.forEach((domain) => {
-    const row = document.createElement("label");
-    row.className = "confidence-row";
-    row.style.borderColor = `${domain.color}44`;
-    row.innerHTML = `
-      <strong>${domain.name}</strong>
-      <input type="range" min="1" max="5" value="${state.confidence[domain.id] || 3}" aria-label="${domain.name} confidence">
-      <span>${state.confidence[domain.id] || 3}/5</span>
+  dayTopics.forEach((topic) => {
+    const signals = detectSignals(topic);
+    const card = document.createElement("article");
+    card.className = `topic-card status-${getStatus([topic])}`;
+    card.innerHTML = `
+      <details open>
+        <summary>
+          <span>${escapeHtml(topic.title)}</span>
+          <strong>${topic.confidence}/5</strong>
+        </summary>
+        <label>
+          Title
+          <input data-topic-title="${topic.id}" type="text" value="${escapeHtml(topic.title)}">
+        </label>
+        <label>
+          Notes
+          <textarea data-topic-details="${topic.id}" rows="4">${escapeHtml(topic.details || "")}</textarea>
+        </label>
+        <label>
+          Confidence
+          <input data-topic-confidence="${topic.id}" type="range" min="1" max="5" value="${topic.confidence}">
+        </label>
+        <div class="topic-footer">
+          <div class="topic-tags">${signals.map((signal) => `<span>${escapeHtml(signal.name)}</span>`).join("")}</div>
+          <button class="button ghost danger" type="button" data-delete-topic="${topic.id}">Delete</button>
+        </div>
+      </details>
     `;
-    if (dayNotes.length && !dayDomains.has(domain.id)) {
-      row.style.opacity = "0.56";
-    }
-    const input = row.querySelector("input");
-    const value = row.querySelector("span");
-    input.addEventListener("input", () => {
-      state.confidence[domain.id] = Number(input.value);
-      value.textContent = `${input.value}/5`;
-      saveState();
-      renderStats();
-      renderDomains();
-      renderMarkdown();
-    });
-    els.dayConfidenceList.append(row);
+    els.dayReview.append(card);
   });
 }
 
-function renderGaps() {
-  const questions = state.notes.flatMap((note) => note.questions.map((question) => ({ question, domains: note.domains })));
-  els.gapList.innerHTML = "";
+function renderReview() {
+  const needsReview = lowTopics();
+  const weekTopics = topicsForWeek(visibleWeekStart);
+  const weekLow = weekTopics.filter((topic) => Number(topic.confidence) <= 3);
+  const weekStrong = weekTopics.filter((topic) => Number(topic.confidence) >= 4);
 
-  if (!questions.length) {
-    const li = document.createElement("li");
-    li.textContent = "No gaps logged yet. Add confusion plainly when you capture notes.";
-    els.gapList.append(li);
-    return;
-  }
-
-  questions.slice(0, 6).forEach((item) => {
-    const li = document.createElement("li");
-    const domainNames = item.domains.map((id) => domains.find((domain) => domain.id === id)?.name).filter(Boolean).join(", ");
-    li.textContent = `${item.question} (${domainNames})`;
-    els.gapList.append(li);
-  });
-}
-
-function renderFlashcards() {
   els.flashcards.innerHTML = "";
-  els.flashcards.classList.toggle("empty-state", !state.flashcards.length);
-  els.flashCount.textContent = `${state.flashcards.length} cards`;
+  els.flashcards.classList.toggle("empty-state", !needsReview.length);
+  els.flashCount.textContent = `${needsReview.length} ${needsReview.length === 1 ? "topic" : "topics"}`;
 
-  if (!state.flashcards.length) {
-    els.flashcards.textContent = "Add a note or load the demo to generate active-recall cards.";
-    return;
+  if (!needsReview.length) {
+    els.flashcards.textContent = "Nothing below 4/5 right now. That is the state you want.";
+  } else {
+    needsReview.forEach((topic) => {
+      const card = document.createElement("article");
+      card.className = `review-topic status-${getStatus([topic])}`;
+      card.innerHTML = `
+        <div>
+          <strong>${escapeHtml(topic.title)}</strong>
+          <span>${formatShortDate(topic.date)} · ${topic.confidence}/5</span>
+        </div>
+        <p>${escapeHtml(topic.details || "No notes yet.")}</p>
+        <label>
+          Confidence
+          <input data-topic-confidence="${topic.id}" type="range" min="1" max="5" value="${topic.confidence}">
+        </label>
+        <button class="button secondary" type="button" data-mark-confident="${topic.id}">Mark Confident</button>
+      `;
+      els.flashcards.append(card);
+    });
   }
 
-  state.flashcards.forEach((card, index) => {
-    const node = document.createElement("article");
-    node.className = "flash-card";
-    node.innerHTML = `<strong>${index + 1}. ${escapeHtml(card.q)}</strong><p>${escapeHtml(card.a)}</p>`;
-    els.flashcards.append(node);
+  els.gapCount.textContent = `${weekTopics.length} this week`;
+  els.gapList.innerHTML = "";
+  [
+    `${weekLow.length} topic${weekLow.length === 1 ? "" : "s"} need review this week.`,
+    `${weekStrong.length} topic${weekStrong.length === 1 ? "" : "s"} are at 4/5 or higher.`,
+    needsReview[0] ? `Next best study target: ${needsReview[0].title}.` : "No low-confidence topics currently tracked."
+  ].forEach((line) => {
+    const li = document.createElement("li");
+    li.textContent = line;
+    els.gapList.append(li);
   });
 }
 
 function renderTimeline() {
   els.noteTimeline.innerHTML = "";
-  els.noteTimeline.classList.toggle("empty-state", !state.notes.length);
-
-  if (!state.notes.length) {
-    els.noteTimeline.textContent = "No notes captured yet.";
+  els.noteTimeline.classList.toggle("empty-state", !state.topics.length);
+  if (!state.topics.length) {
+    els.noteTimeline.textContent = "No topics captured yet.";
     return;
   }
 
-  state.notes.forEach((note) => {
-    const date = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(note.createdAt));
+  state.topics.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach((topic) => {
     const card = document.createElement("article");
-    card.className = "note-card";
+    card.className = `note-card status-${getStatus([topic])}`;
     card.innerHTML = `
-      <strong>${escapeHtml(date)}</strong>
-      <p>${escapeHtml(note.summary)}</p>
-      <div class="tags">${note.tags.slice(0, 8).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+      <strong>${escapeHtml(topic.title)}</strong>
+      <p>${formatShortDate(topic.date)} · Confidence ${topic.confidence}/5</p>
+      <p>${escapeHtml(topic.details || "")}</p>
     `;
     els.noteTimeline.append(card);
   });
@@ -639,27 +487,18 @@ function renderArchive() {
   }
 
   weeks.forEach((weekStart) => {
-    const notes = notesForWeek(weekStart);
-    const questions = notes.flatMap((note) => note.questions);
-    const domainCounts = domains
-      .map((domain) => ({
-        domain,
-        count: notes.filter((note) => note.domains.includes(domain.id)).length
-      }))
-      .filter((item) => item.count)
-      .sort((a, b) => b.count - a.count);
-
+    const topics = topicsForWeek(weekStart);
+    const low = topics.filter((topic) => Number(topic.confidence) <= 3).length;
     const card = document.createElement("article");
-    card.className = "archive-week";
+    card.className = `archive-week status-${getStatus(topics)}`;
     card.innerHTML = `
       <div class="archive-week-top">
         <div>
           <strong>${escapeHtml(weekLabel(weekStart))}</strong>
-          <span>${notes.length} ${notes.length === 1 ? "note" : "notes"} · ${questions.length} open ${questions.length === 1 ? "question" : "questions"}</span>
+          <span>${topics.length} ${topics.length === 1 ? "topic" : "topics"} · ${low} to review</span>
         </div>
-        <div class="domain-dots">${domainCounts.map(({ domain }) => `<i style="background:${domain.color}; color:${domain.color}"></i>`).join("")}</div>
       </div>
-      <p>${domainCounts.length ? domainCounts.map(({ domain, count }) => `${domain.name}: ${count}`).join(" · ") : "No domain signals yet."}</p>
+      <p>${topics.slice(0, 3).map((topic) => topic.title).join(" · ") || "No topics yet."}</p>
       <div class="archive-actions">
         <button class="button ghost" type="button" data-open-week="${dateKey(weekStart)}">Open</button>
         <button class="button secondary" type="button" data-export-week="${dateKey(weekStart)}">Export</button>
@@ -670,78 +509,31 @@ function renderArchive() {
 }
 
 function buildMarkdown() {
-  const lines = ["# Data Center Flight Deck", "", `Readiness: ${readiness()}%`, ""];
-
-  lines.push("## Confidence");
-  domains.forEach((domain) => {
-    lines.push(`- ${domain.name}: ${state.confidence[domain.id] || 3}/5`);
+  const lines = ["# Data Center Flight Deck", "", `Average confidence: ${averageConfidence()}%`, ""];
+  lines.push("## Topics");
+  if (!state.topics.length) lines.push("- No topics yet.");
+  state.topics.forEach((topic) => {
+    lines.push(`- **${topic.title}** (${formatShortDate(topic.date)}, ${topic.confidence}/5): ${topic.details || ""}`);
   });
-  lines.push("");
-
-  lines.push("## Notes");
-  if (!state.notes.length) lines.push("- No notes yet.");
-
-  state.notes.forEach((note) => {
-    const date = new Date(note.createdAt).toLocaleString();
-    lines.push(`### ${date}`);
-    lines.push("");
-    lines.push(`**Summary:** ${note.summary}`);
-    lines.push("");
-    lines.push(`**Domains:** ${note.domains.map((id) => domains.find((domain) => domain.id === id)?.name || id).join(", ")}`);
-    if (note.tags.length) lines.push(`**Tags:** ${note.tags.join(", ")}`);
-    if (note.commands.length) {
-      lines.push("");
-      lines.push("**Commands:**");
-      note.commands.forEach((command) => lines.push(`- \`${command}\``));
-    }
-    if (note.questions.length) {
-      lines.push("");
-      lines.push("**Open Questions:**");
-      note.questions.forEach((question) => lines.push(`- ${question}`));
-    }
-    lines.push("");
-    lines.push("**Raw Capture:**");
-    lines.push(note.raw);
-    lines.push("");
-  });
-
   return lines.join("\n");
 }
 
 function buildWeekMarkdown(weekStart) {
-  const notes = notesForWeek(weekStart);
-  const lines = [`# Data Center Flight Deck - ${weekLabel(weekStart)}`, "", `Readiness: ${readiness()}%`, ""];
-  const weekQuestions = notes.flatMap((note) => note.questions);
+  const topics = topicsForWeek(weekStart);
+  const lines = [`# Study Week - ${weekLabel(weekStart)}`, ""];
+  const low = topics.filter((topic) => Number(topic.confidence) <= 3);
 
-  lines.push("## Confidence");
-  domains.forEach((domain) => {
-    const count = notes.filter((note) => note.domains.includes(domain.id)).length;
-    lines.push(`- ${domain.name}: ${state.confidence[domain.id] || 3}/5 (${count} notes this week)`);
-  });
+  lines.push("## Needs Review");
+  if (!low.length) lines.push("- No topics below 4/5.");
+  low.forEach((topic) => lines.push(`- **${topic.title}** (${topic.confidence}/5): ${topic.details || ""}`));
   lines.push("");
-
-  lines.push("## Study Priorities");
-  if (!weekQuestions.length) {
-    lines.push("- No open questions captured this week.");
-  } else {
-    weekQuestions.forEach((question) => lines.push(`- ${question}`));
-  }
-  lines.push("");
-
-  lines.push("## Daily Notes");
-  if (!notes.length) lines.push("- No notes captured this week.");
+  lines.push("## Daily Topics");
 
   Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)).forEach((day) => {
-    const dayNotes = notesForDay(dateKey(day));
-    if (!dayNotes.length) return;
+    const dayTopics = topicsForDay(dateKey(day));
+    if (!dayTopics.length) return;
     lines.push(`### ${new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(day)}`);
-    lines.push("");
-    dayNotes.forEach((note) => {
-      lines.push(`- **${note.domains.map((id) => domains.find((domain) => domain.id === id)?.name || id).join(", ")}:** ${note.summary}`);
-      if (note.questions.length) {
-        note.questions.forEach((question) => lines.push(`  - Question: ${question}`));
-      }
-    });
+    dayTopics.forEach((topic) => lines.push(`- ${topic.title} (${topic.confidence}/5): ${topic.details || ""}`));
     lines.push("");
   });
 
@@ -751,27 +543,25 @@ function buildWeekMarkdown(weekStart) {
 function buildVaultPayload() {
   return {
     app: "Data Center Flight Deck",
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
-    storageKey: STORAGE_KEY,
-    domains: domains.map(({ id, name, color }) => ({ id, name, color })),
     state
   };
 }
 
 function normalizeImportedState(imported) {
   const incoming = imported?.state || imported;
-  if (!incoming || !Array.isArray(incoming.notes)) {
-    throw new Error("Backup file does not contain a valid notes array.");
+  if (!incoming || (!Array.isArray(incoming.topics) && !Array.isArray(incoming.notes))) {
+    throw new Error("Backup file does not contain topics or legacy notes.");
   }
 
+  const importedTopics = Array.isArray(incoming.topics) && incoming.topics.length
+    ? incoming.topics.map(normalizeTopic)
+    : migrateNotesToTopics(incoming.notes || [], incoming.confidence || {});
+
   return {
-    notes: incoming.notes.filter((note) => note && note.createdAt && note.raw),
-    confidence: {
-      ...Object.fromEntries(domains.map((domain) => [domain.id, 3])),
-      ...(incoming.confidence || {})
-    },
-    flashcards: Array.isArray(incoming.flashcards) ? incoming.flashcards : [],
+    topics: importedTopics,
+    notes: Array.isArray(incoming.notes) ? incoming.notes : [],
     lastBackupAt: incoming.lastBackupAt || imported.exportedAt || null
   };
 }
@@ -786,108 +576,18 @@ function downloadText(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function createTicket() {
-  const weak = getWeakestDomain();
-  const options = tickets[weak.id] || tickets.safety;
-  const ticket = options[Math.floor(Math.random() * options.length)];
-  currentTicket = {
-    ...ticket,
-    domain: weak,
-    id: `DCT-${Math.floor(1000 + Math.random() * 9000)}`
-  };
-  els.ticketId.textContent = currentTicket.id;
-  els.ticketDomain.textContent = weak.name;
-  els.ticketTitle.textContent = currentTicket.title;
-  els.ticketBody.textContent = currentTicket.body;
-  els.ticketTags.innerHTML = currentTicket.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
-  els.gradeOutput.className = "grade-output empty-state";
-  els.gradeOutput.textContent = "Write your response, then grade it.";
-}
-
-function gradeResponse(text) {
-  const lower = normalize(text);
-  const matched = coachingChecks.filter((check) => check.terms.some((term) => lower.includes(term)));
-  const score = Math.min(100, Math.max(20, matched.length * 16 + Math.min(20, Math.floor(text.length / 30))));
-  const missing = coachingChecks.filter((check) => !matched.includes(check)).slice(0, 3);
-
-  const strengths = matched.length
-    ? matched.map((check) => check.label).slice(0, 4)
-    : ["You started the response. Add concrete checks and safety steps."];
-
-  els.gradeOutput.className = "grade-output";
-  els.gradeOutput.innerHTML = `
-    <strong>Coach score: ${score}%</strong>
-    <p>${score >= 76 ? "Strong troubleshooting shape. Tighten it by making each verification explicit." : "Good start. Make the sequence safer and more evidence-driven."}</p>
-    <ul>
-      ${strengths.map((item) => `<li>Covered: ${escapeHtml(item)}</li>`).join("")}
-      ${missing.map((item) => `<li>Add: ${escapeHtml(item.label)}</li>`).join("")}
-    </ul>
-  `;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function setupVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    els.voiceButton.disabled = true;
-    els.voiceStatus.textContent = "Voice capture is not supported in this browser.";
-    return;
-  }
-
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = "en-US";
-
-  let baseText = "";
-
-  recognition.onstart = () => {
-    baseText = els.noteInput.value.trim();
-    els.voiceButton.textContent = "Stop";
-    els.voiceStatus.textContent = "Listening. Speak your lab notes naturally.";
-  };
-
-  recognition.onresult = (event) => {
-    const transcript = Array.from(event.results)
-      .slice(event.resultIndex)
-      .map((result) => result[0].transcript)
-      .join(" ");
-    els.noteInput.value = [baseText, transcript].filter(Boolean).join(" ");
-  };
-
-  recognition.onend = () => {
-    els.voiceButton.textContent = "Voice";
-    els.voiceStatus.textContent = "Voice capture paused.";
-  };
-
-  recognition.onerror = () => {
-    els.voiceStatus.textContent = "Voice capture stopped. You can keep typing.";
-  };
-}
-
 function downloadMarkdown() {
   downloadText(`data-center-flight-deck-${new Date().toISOString().slice(0, 10)}.md`, buildMarkdown(), "text/markdown");
 }
 
 function downloadWeekMarkdown(weekStart = visibleWeekStart) {
-  downloadText(`data-center-flight-deck-week-${dateKey(weekStart)}.md`, buildWeekMarkdown(weekStart), "text/markdown");
+  downloadText(`study-week-${dateKey(weekStart)}.md`, buildWeekMarkdown(weekStart), "text/markdown");
 }
 
 function downloadVaultData() {
   state.lastBackupAt = new Date().toISOString();
   saveState();
-  downloadText(
-    `data-center-flight-deck-vault-${new Date().toISOString().slice(0, 10)}.json`,
-    JSON.stringify(buildVaultPayload(), null, 2),
-    "application/json"
-  );
+  downloadText(`data-center-flight-deck-vault-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(buildVaultPayload(), null, 2), "application/json");
   renderArchive();
 }
 
@@ -895,16 +595,14 @@ function importVaultData(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const imported = JSON.parse(String(reader.result || ""));
-      const nextState = normalizeImportedState(imported);
-      const ok = window.confirm(`Import ${nextState.notes.length} notes and replace this browser vault?`);
+      const nextState = normalizeImportedState(JSON.parse(String(reader.result || "")));
+      const ok = window.confirm(`Import ${nextState.topics.length} topics and replace this browser vault?`);
       if (!ok) return;
       state = nextState;
-      const latest = state.notes[0]?.createdAt ? new Date(state.notes[0].createdAt) : new Date();
-      selectedDateKey = dateKey(latest);
+      const latest = state.topics[0]?.date || dateKey(new Date());
+      selectedDateKey = latest;
       visibleWeekStart = startOfWeek(latest);
       saveState();
-      buildFlashcards();
       render();
       location.hash = "#vault";
     } catch (error) {
@@ -916,68 +614,131 @@ function importVaultData(file) {
   reader.readAsText(file);
 }
 
+function createTicket() {
+  const weak = lowTopics()[0];
+  const ticket = tickets[Math.floor(Math.random() * tickets.length)];
+  currentTicket = { ...ticket, topic: weak, id: `DCT-${Math.floor(1000 + Math.random() * 9000)}` };
+
+  els.ticketId.textContent = currentTicket.id;
+  els.ticketDomain.textContent = weak ? weak.title : "Add topics";
+  els.ticketTitle.textContent = weak ? `${ticket.title}: ${weak.title}` : "Generate a ticket from your current weak spot.";
+  els.ticketBody.textContent = weak ? `${ticket.body} Topic notes: ${weak.details || "No notes yet."}` : "Add a few low-confidence topics first.";
+  els.ticketTags.innerHTML = ticket.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  els.gradeOutput.className = "grade-output empty-state";
+  els.gradeOutput.textContent = "Write your response, then grade it.";
+}
+
+function gradeResponse(text) {
+  const lower = text.toLowerCase();
+  const checks = [
+    ["safety", "change", "verify", "label"],
+    ["explain", "because", "risk", "impact"],
+    ["check", "test", "confirm", "inspect"],
+    ["document", "escalate", "ask", "lead"]
+  ];
+  const covered = checks.filter((group) => group.some((term) => lower.includes(term))).length;
+  const score = Math.min(100, 30 + covered * 17 + Math.min(20, Math.floor(text.length / 40)));
+  els.gradeOutput.className = "grade-output";
+  els.gradeOutput.innerHTML = `<strong>Coach score: ${score}%</strong><p>${score >= 76 ? "Solid shape. Make sure the answer names evidence, risk, and next step." : "Good start. Add verification, risk, and escalation/documentation."}</p>`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function handleTopicEdits(event) {
+  const title = event.target.closest("[data-topic-title]");
+  const details = event.target.closest("[data-topic-details]");
+  const confidence = event.target.closest("[data-topic-confidence]");
+  if (title) updateTopic(title.dataset.topicTitle, { title: title.value });
+  if (details) updateTopic(details.dataset.topicDetails, { details: details.value });
+  if (confidence) updateTopic(confidence.dataset.topicConfidence, { confidence: Number(confidence.value) });
+}
+
 els.captureForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = els.noteInput.value.trim();
-  if (!text) return;
-  addNote(text);
+  addTopic({
+    title: els.topicTitle.value,
+    details: els.noteInput.value,
+    confidence: els.topicConfidence.value,
+    date: dateKey(new Date())
+  });
+  els.topicTitle.value = "";
   els.noteInput.value = "";
-  location.hash = "#review";
+  els.topicConfidence.value = "3";
+  location.hash = "#week";
+});
+
+els.dayTopicForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addTopic({
+    title: els.dayTopicTitle.value,
+    details: els.dayTopicNotes.value,
+    confidence: els.dayTopicConfidence.value,
+    date: selectedDateKey
+  });
+  els.dayTopicTitle.value = "";
+  els.dayTopicNotes.value = "";
+  els.dayTopicConfidence.value = "3";
 });
 
 els.clearInput.addEventListener("click", () => {
+  els.topicTitle.value = "";
   els.noteInput.value = "";
-  els.noteInput.focus();
+  els.topicConfidence.value = "3";
+  els.topicTitle.focus();
 });
 
-els.voiceButton.addEventListener("click", () => {
-  if (!recognition) return;
-  if (els.voiceButton.textContent === "Stop") {
-    recognition.stop();
-  } else {
-    recognition.start();
-  }
-});
-
-els.seedDemo.addEventListener("click", () => {
-  els.noteInput.value = demoText;
-  location.hash = "#capture";
-  els.noteInput.focus();
+document.querySelector("#seed-demo")?.addEventListener("click", () => {
+  demoTopics.forEach((topic, index) => addTopic({ ...topic, date: dateKey(addDays(new Date(), -index)) }));
+  location.hash = "#week";
 });
 
 els.prevWeek.addEventListener("click", () => {
   visibleWeekStart = addDays(visibleWeekStart, -7);
   selectedDateKey = dateKey(visibleWeekStart);
-  renderWeek();
+  render();
 });
 
 els.todayWeek.addEventListener("click", () => {
-  const today = new Date();
-  selectedDateKey = dateKey(today);
-  visibleWeekStart = startOfWeek(today);
-  renderWeek();
+  selectedDateKey = dateKey(new Date());
+  visibleWeekStart = startOfWeek(new Date());
+  render();
 });
 
 els.nextWeek.addEventListener("click", () => {
   visibleWeekStart = addDays(visibleWeekStart, 7);
   selectedDateKey = dateKey(visibleWeekStart);
-  renderWeek();
+  render();
 });
 
-els.exportWeek.addEventListener("click", () => {
-  downloadWeekMarkdown(visibleWeekStart);
+els.exportWeek.addEventListener("click", () => downloadWeekMarkdown(visibleWeekStart));
+els.reviewThisWeek.addEventListener("click", () => {
+  location.hash = "#week";
 });
 
-els.generateFlashcards.addEventListener("click", buildFlashcards);
+els.dayReview.addEventListener("change", handleTopicEdits);
+els.dayReview.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-topic]");
+  if (button && window.confirm("Delete this topic?")) deleteTopic(button.dataset.deleteTopic);
+});
+
+els.flashcards.addEventListener("change", handleTopicEdits);
+els.flashcards.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-mark-confident]");
+  if (button) updateTopic(button.dataset.markConfident, { confidence: 5 });
+});
+
 els.newTicket.addEventListener("click", createTicket);
-
 els.responseForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = els.ticketResponse.value.trim();
   if (!currentTicket) createTicket();
-  if (text) gradeResponse(text);
+  if (els.ticketResponse.value.trim()) gradeResponse(els.ticketResponse.value.trim());
 });
-
 els.clearResponse.addEventListener("click", () => {
   els.ticketResponse.value = "";
   els.gradeOutput.className = "grade-output empty-state";
@@ -986,11 +747,7 @@ els.clearResponse.addEventListener("click", () => {
 
 els.exportMd.addEventListener("click", downloadMarkdown);
 els.exportData.addEventListener("click", downloadVaultData);
-
-els.importDataTrigger.addEventListener("click", () => {
-  els.importData.click();
-});
-
+els.importDataTrigger.addEventListener("click", () => els.importData.click());
 els.importData.addEventListener("change", () => {
   const file = els.importData.files?.[0];
   if (file) importVaultData(file);
@@ -999,25 +756,21 @@ els.importData.addEventListener("change", () => {
 els.weeklyArchive.addEventListener("click", (event) => {
   const openButton = event.target.closest("[data-open-week]");
   const exportButton = event.target.closest("[data-export-week]");
-
   if (openButton) {
     visibleWeekStart = dateFromKey(openButton.dataset.openWeek);
     selectedDateKey = dateKey(visibleWeekStart);
     location.hash = "#week";
     render();
   }
-
-  if (exportButton) {
-    downloadWeekMarkdown(dateFromKey(exportButton.dataset.exportWeek));
-  }
+  if (exportButton) downloadWeekMarkdown(dateFromKey(exportButton.dataset.exportWeek));
 });
 
 els.resetVault.addEventListener("click", () => {
-  const ok = window.confirm("Reset all local notes, ratings, and drills?");
-  if (!ok) return;
+  if (!window.confirm("Reset all local topics and backups?")) return;
   localStorage.removeItem(STORAGE_KEY);
   state = loadState();
-  currentTicket = null;
+  selectedDateKey = dateKey(new Date());
+  visibleWeekStart = startOfWeek(new Date());
   render();
 });
 
@@ -1029,5 +782,4 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-setupVoice();
 render();

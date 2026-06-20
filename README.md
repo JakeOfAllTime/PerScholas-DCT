@@ -1,6 +1,6 @@
 # Data Center Flight Deck
 
-A local-first web app for Per Scholas Data Center Technician study. It turns messy class notes into structured review material, weak-spot tracking, flash drills, and realistic troubleshooting tickets.
+A local-first web app for Per Scholas Data Center Technician study. It tracks daily class topics, confidence levels, and what needs to be reviewed next.
 
 This is an independent student learning tool and is not official Per Scholas course material.
 
@@ -8,12 +8,12 @@ Live app: [https://perscholas-dct.vercel.app](https://perscholas-dct.vercel.app)
 
 ## What it does
 
-- Captures messy class or lab notes by typing or browser voice input.
-- Distills notes into domains: Networking, Power, Cooling, Server Hardware, and Safety + Tools.
-- Tracks confidence by domain and highlights weak spots.
-- Groups captures by day in a weekly calendar for review.
-- Generates flash drills from captured terms and open questions.
-- Creates realistic incident tickets and grades troubleshooting responses.
+- Adds multiple topic titles to each calendar day.
+- Tracks a confidence slider for each topic.
+- Colors each day by topic status: low, medium, or confident.
+- Shows low-confidence topics in a focused review list.
+- Removes topics from the review list when confidence reaches 4/5 or higher.
+- Keeps a lightweight troubleshooting simulator for optional practice.
 - Exports the full local vault as JSON and Markdown.
 - Exports individual weeks as Markdown study reviews.
 - Runs as a dependency-free static web app.
@@ -38,11 +38,11 @@ When your Mac and phone are on the same Wi-Fi network, run the server with:
 python3 -m http.server 5174 --bind 0.0.0.0
 ```
 
-Then open `http://YOUR_MAC_IP:5174` on your phone. Voice capture depends on browser support and microphone permissions.
+Then open `http://YOUR_MAC_IP:5174` on your phone. You can also use the hosted Vercel URL above.
 
 ## Notes
 
-The current prototype stores everything in your browser with `localStorage`, including notes, confidence ratings, and the calendar history. That makes the app simple and private, but the data is tied to the browser/device.
+The current prototype stores everything in your browser with `localStorage`, including topics, confidence ratings, and the calendar history. That makes the app simple and private, but the data is tied to the browser/device.
 
 Use **Vault > Export Data** to download a full JSON backup. That file can be imported later with **Vault > Import Data**. Use **Export Markdown** or **Export Week** when you want a readable study review.
 
