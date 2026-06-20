@@ -99,6 +99,8 @@ const coachingChecks = [
 let state = loadState();
 let currentTicket = null;
 let recognition = null;
+let selectedDateKey = dateKey(new Date());
+let visibleWeekStart = startOfWeek(new Date());
 
 const els = {
   sections: document.querySelectorAll(".workspace-section"),
@@ -109,6 +111,16 @@ const els = {
   voiceButton: document.querySelector("#voice-button"),
   voiceStatus: document.querySelector("#voice-status"),
   seedDemo: document.querySelector("#seed-demo"),
+  weekRange: document.querySelector("#week-range"),
+  weekNoteCount: document.querySelector("#week-note-count"),
+  weekCalendar: document.querySelector("#week-calendar"),
+  selectedDayTitle: document.querySelector("#selected-day-title"),
+  selectedDayCount: document.querySelector("#selected-day-count"),
+  dayReview: document.querySelector("#day-review"),
+  dayConfidenceList: document.querySelector("#day-confidence-list"),
+  prevWeek: document.querySelector("#prev-week"),
+  todayWeek: document.querySelector("#today-week"),
+  nextWeek: document.querySelector("#next-week"),
   domainGrid: document.querySelector("#domain-grid"),
   noteCount: document.querySelector("#note-count"),
   vaultCount: document.querySelector("#vault-count"),
@@ -179,6 +191,37 @@ function splitSentences(text) {
     .filter(Boolean);
 }
 
+function dateKey(date) {
+  const value = new Date(date);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateFromKey(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function startOfWeek(date) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  const offset = value.getDay();
+  value.setDate(value.getDate() - offset);
+  return value;
+}
+
+function addDays(date, days) {
+  const value = new Date(date);
+  value.setDate(value.getDate() + days);
+  return value;
+}
+
+function formatShortDate(date) {
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
+
 function detectDomains(text) {
   const lower = normalize(text);
   return domains.map((domain) => {
@@ -239,6 +282,8 @@ function distillNote(text) {
 function addNote(text) {
   const note = distillNote(text);
   state.notes.unshift(note);
+  selectedDateKey = dateKey(note.createdAt);
+  visibleWeekStart = startOfWeek(note.createdAt);
 
   note.domains.forEach((domainId) => {
     const uncertainty = note.questions.length > 0;
@@ -313,6 +358,7 @@ function render() {
   renderNavigation();
   renderStats();
   renderDomains();
+  renderWeek();
   renderGaps();
   renderFlashcards();
   renderTimeline();
@@ -377,6 +423,111 @@ function renderDomains() {
     });
 
     els.domainGrid.append(card);
+  });
+}
+
+function renderWeek() {
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDays(visibleWeekStart, index));
+  const weekEnd = addDays(visibleWeekStart, 6);
+  const weekNotes = state.notes.filter((note) => {
+    const key = dateKey(note.createdAt);
+    return weekDays.some((day) => dateKey(day) === key);
+  });
+
+  els.weekRange.textContent = `${formatShortDate(visibleWeekStart)} - ${formatShortDate(weekEnd)}`;
+  els.weekNoteCount.textContent = `${weekNotes.length} ${weekNotes.length === 1 ? "note" : "notes"}`;
+  els.weekCalendar.innerHTML = "";
+
+  weekDays.forEach((day) => {
+    const key = dateKey(day);
+    const dayNotes = notesForDay(key);
+    const domainIds = [...new Set(dayNotes.flatMap((note) => note.domains))];
+    const button = document.createElement("button");
+    button.className = "day-card";
+    button.type = "button";
+    button.classList.toggle("is-selected", key === selectedDateKey);
+    button.classList.toggle("is-today", key === dateKey(new Date()));
+    button.setAttribute("aria-pressed", key === selectedDateKey ? "true" : "false");
+    button.innerHTML = `
+      <span>${new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day)}</span>
+      <strong>${day.getDate()}</strong>
+      <small>${dayNotes.length} ${dayNotes.length === 1 ? "note" : "notes"}</small>
+      <div class="domain-dots">${domainIds.map((id) => {
+        const domain = domains.find((item) => item.id === id);
+        return `<i style="background:${domain?.color || "#42d9c8"}; color:${domain?.color || "#42d9c8"}"></i>`;
+      }).join("")}</div>
+    `;
+    button.addEventListener("click", () => {
+      selectedDateKey = key;
+      renderWeek();
+    });
+    els.weekCalendar.append(button);
+  });
+
+  renderSelectedDay();
+}
+
+function notesForDay(key) {
+  return state.notes.filter((note) => dateKey(note.createdAt) === key);
+}
+
+function renderSelectedDay() {
+  const selectedDate = dateFromKey(selectedDateKey);
+  const dayNotes = notesForDay(selectedDateKey);
+  const dayDomains = new Set(dayNotes.flatMap((note) => note.domains));
+
+  els.selectedDayTitle.textContent = new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric"
+  }).format(selectedDate);
+  els.selectedDayCount.textContent = `${dayNotes.length} ${dayNotes.length === 1 ? "note" : "notes"}`;
+
+  els.dayReview.innerHTML = "";
+  els.dayReview.classList.toggle("empty-state", !dayNotes.length);
+
+  if (!dayNotes.length) {
+    els.dayReview.textContent = "No captures for this day yet.";
+  } else {
+    dayNotes.forEach((note) => {
+      const card = document.createElement("article");
+      card.className = "day-note";
+      const questions = note.questions.length
+        ? `<ul>${note.questions.map((question) => `<li>${escapeHtml(question)}</li>`).join("")}</ul>`
+        : "";
+      card.innerHTML = `
+        <strong>${escapeHtml(note.domains.map((id) => domains.find((domain) => domain.id === id)?.name || id).join(", "))}</strong>
+        <p>${escapeHtml(note.summary)}</p>
+        ${questions}
+      `;
+      els.dayReview.append(card);
+    });
+  }
+
+  els.dayConfidenceList.innerHTML = "";
+  domains.forEach((domain) => {
+    const row = document.createElement("label");
+    row.className = "confidence-row";
+    row.style.borderColor = `${domain.color}44`;
+    row.innerHTML = `
+      <strong>${domain.name}</strong>
+      <input type="range" min="1" max="5" value="${state.confidence[domain.id] || 3}" aria-label="${domain.name} confidence">
+      <span>${state.confidence[domain.id] || 3}/5</span>
+    `;
+    if (dayNotes.length && !dayDomains.has(domain.id)) {
+      row.style.opacity = "0.56";
+    }
+    const input = row.querySelector("input");
+    const value = row.querySelector("span");
+    input.addEventListener("input", () => {
+      state.confidence[domain.id] = Number(input.value);
+      value.textContent = `${input.value}/5`;
+      saveState();
+      renderStats();
+      renderDomains();
+      renderMarkdown();
+    });
+    els.dayConfidenceList.append(row);
   });
 }
 
@@ -605,6 +756,25 @@ els.seedDemo.addEventListener("click", () => {
   els.noteInput.value = demoText;
   location.hash = "#capture";
   els.noteInput.focus();
+});
+
+els.prevWeek.addEventListener("click", () => {
+  visibleWeekStart = addDays(visibleWeekStart, -7);
+  selectedDateKey = dateKey(visibleWeekStart);
+  renderWeek();
+});
+
+els.todayWeek.addEventListener("click", () => {
+  const today = new Date();
+  selectedDateKey = dateKey(today);
+  visibleWeekStart = startOfWeek(today);
+  renderWeek();
+});
+
+els.nextWeek.addEventListener("click", () => {
+  visibleWeekStart = addDays(visibleWeekStart, 7);
+  selectedDateKey = dateKey(visibleWeekStart);
+  renderWeek();
 });
 
 els.generateFlashcards.addEventListener("click", buildFlashcards);

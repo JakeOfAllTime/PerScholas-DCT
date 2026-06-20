@@ -1,10 +1,10 @@
-const CACHE_NAME = "dc-flight-deck-static-v2";
+const CACHE_NAME = "dc-flight-deck-static-v4";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=2",
-  "./app.js?v=2",
-  "./manifest.webmanifest?v=2",
+  "./styles.css?v=4",
+  "./app.js?v=4",
+  "./manifest.webmanifest?v=4",
   "./icon.svg"
 ];
 

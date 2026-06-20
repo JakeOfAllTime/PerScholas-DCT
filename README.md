@@ -9,6 +9,7 @@ This is an independent student learning tool and is not official Per Scholas cou
 - Captures messy class or lab notes by typing or browser voice input.
 - Distills notes into domains: Networking, Power, Cooling, Server Hardware, and Safety + Tools.
 - Tracks confidence by domain and highlights weak spots.
+- Groups captures by day in a weekly calendar for review.
 - Generates flash drills from captured terms and open questions.
 - Creates realistic incident tickets and grades troubleshooting responses.
 - Exports the local vault as Markdown.
@@ -38,7 +39,9 @@ Then open `http://YOUR_MAC_IP:5174` on your phone. Voice capture depends on brow
 
 ## Notes
 
-The current prototype stores everything in your browser with `localStorage`. Export Markdown regularly if you want a backup outside the browser.
+The current prototype stores everything in your browser with `localStorage`, including notes, confidence ratings, and the calendar history. That makes the app simple and private, but the data is tied to the browser/device. Export Markdown regularly if you want a backup outside the browser.
+
+Longer term, the best upgrade is a portable vault: downloadable JSON/Markdown files first, then optional sync so Mac and phone can share the same study history.
 
 ## Roadmap
 

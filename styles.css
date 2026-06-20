@@ -460,6 +460,7 @@ h3 {
 }
 
 .capture-grid,
+.week-grid-layout,
 .review-grid,
 .sim-grid,
 .vault-grid {
@@ -477,8 +478,14 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.week-grid-layout {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
 .capture-panel,
 .insight-panel,
+.week-panel,
+.day-panel,
 .review-panel,
 .ticket-panel,
 .response-panel,
@@ -530,6 +537,8 @@ textarea:focus {
 }
 
 .insight-panel,
+.week-panel,
+.day-panel,
 .review-panel,
 .ticket-panel,
 .timeline-panel,
@@ -557,6 +566,139 @@ textarea:focus {
 .ticket-meta {
   color: var(--muted);
   font-size: 0.88rem;
+}
+
+.week-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.week-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.day-card {
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  min-height: 148px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  text-align: left;
+}
+
+.day-card:hover,
+.day-card.is-selected {
+  border-color: rgba(66, 217, 200, 0.78);
+  background: rgba(66, 217, 200, 0.11);
+}
+
+.day-card.is-today {
+  box-shadow: inset 0 0 0 1px rgba(255, 191, 105, 0.58);
+}
+
+.day-card strong,
+.day-card span {
+  display: block;
+}
+
+.day-card strong {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.day-card span {
+  color: var(--muted);
+}
+
+.day-card small {
+  color: var(--faint);
+}
+
+.domain-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 11px;
+}
+
+.domain-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px currentColor;
+}
+
+.day-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.day-note {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.day-note strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.day-note p {
+  margin-bottom: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.day-note ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.day-confidence {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.day-confidence h3 {
+  margin-bottom: 12px;
+}
+
+#day-confidence-list {
+  display: grid;
+  gap: 12px;
+}
+
+.confidence-row {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.8fr) minmax(140px, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.confidence-row strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.confidence-row span {
+  text-align: right;
+  color: var(--text);
 }
 
 .signal-ring {
@@ -789,6 +931,7 @@ pre {
 @media (max-width: 980px) {
   .deck-hero,
   .capture-grid,
+  .week-grid-layout,
   .review-grid,
   .sim-grid,
   .vault-grid {
@@ -802,6 +945,10 @@ pre {
 
   .domain-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .week-calendar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -818,10 +965,14 @@ pre {
 
   .nav-tabs {
     width: 100%;
+    overflow: hidden;
   }
 
   .nav-link {
-    flex: 1 0 auto;
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: 0.92rem;
     text-align: center;
   }
 
@@ -845,6 +996,31 @@ pre {
 
   .domain-grid {
     grid-template-columns: 1fr;
+  }
+
+  .week-controls {
+    width: 100%;
+  }
+
+  .week-controls .button {
+    flex: 1 1 90px;
+  }
+
+  .week-calendar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .day-card {
+    min-height: 118px;
+  }
+
+  .confidence-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .confidence-row span {
+    text-align: left;
   }
 
   .rack {
