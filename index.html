@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101315">
+    <title>Data Center Flight Deck</title>
+    <link rel="manifest" href="./manifest.webmanifest?v=2">
+    <link rel="stylesheet" href="./styles.css?v=2">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#capture" aria-label="Data Center Flight Deck home">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span>
+            <strong>Data Center</strong>
+            <small>Flight Deck</small>
+          </span>
+        </a>
+        <nav class="nav-tabs" aria-label="Primary">
+          <a class="nav-link is-active" href="#capture">Capture</a>
+          <a class="nav-link" href="#review">Review</a>
+          <a class="nav-link" href="#simulator">Sim</a>
+          <a class="nav-link" href="#vault">Vault</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="deck-hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Per Scholas DCT + AI tools</p>
+            <h1 id="hero-title">Turn class notes into ops-ready instincts.</h1>
+            <p class="hero-text">
+              Capture rough thoughts after class, distill them into technician knowledge, then drill with tickets based on your weakest areas.
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="#capture">Start Capture</a>
+              <button class="button ghost" id="seed-demo" type="button">Load Demo</button>
+            </div>
+          </div>
+
+          <div class="rack-stage" aria-label="Animated rack readiness panel">
+            <div class="rack-label">
+              <span>AZ-01</span>
+              <strong id="readiness-score">72%</strong>
+            </div>
+            <div class="rack" aria-hidden="true">
+              <span class="u-label">42U</span>
+              <div class="server server-a">
+                <i></i><i></i><i></i><i></i>
+              </div>
+              <div class="server server-b">
+                <i></i><i></i><i></i><i></i>
+              </div>
+              <div class="patch-panel">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="pdu">
+                <b></b><b></b><b></b><b></b><b></b>
+              </div>
+              <svg class="cable-map" viewBox="0 0 280 250" role="presentation" focusable="false">
+                <path d="M34 72 C92 18 185 18 246 76"></path>
+                <path d="M42 118 C122 168 190 168 238 118"></path>
+                <path d="M68 184 C124 112 190 112 226 184"></path>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <section id="capture" class="workspace-section active-section" aria-labelledby="capture-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Daily capture</p>
+              <h2 id="capture-title">Brain dump</h2>
+            </div>
+            <span class="status-pill" id="storage-status">Local vault ready</span>
+          </div>
+
+          <div class="capture-grid">
+            <form class="capture-panel" id="capture-form">
+              <label for="note-input">What happened in class or lab?</label>
+              <textarea id="note-input" name="note" rows="11" placeholder="Example: Practiced console access on Cisco gear. Still fuzzy on rollover cable pinout and when to use straight-through. Covered 3-phase PDU load balancing and safety around energized racks."></textarea>
+              <div class="capture-controls">
+                <button class="button primary" type="submit">Distill Note</button>
+                <button class="button secondary" id="voice-button" type="button">Voice</button>
+                <button class="button ghost" id="clear-input" type="button">Clear</button>
+              </div>
+              <p class="field-note" id="voice-status">Voice capture uses your browser when supported.</p>
+            </form>
+
+            <aside class="insight-panel" aria-labelledby="today-title">
+              <div class="panel-header">
+                <h3 id="today-title">Today signal</h3>
+                <span id="note-count">0 notes</span>
+              </div>
+              <div class="signal-ring" aria-label="Current readiness">
+                <span id="ring-value">0%</span>
+              </div>
+              <dl class="mini-stats">
+                <div>
+                  <dt>Weakest area</dt>
+                  <dd id="weakest-area">None yet</dd>
+                </div>
+                <div>
+                  <dt>Open questions</dt>
+                  <dd id="open-question-count">0</dd>
+                </div>
+                <div>
+                  <dt>Next drill</dt>
+                  <dd id="next-drill">Add notes</dd>
+                </div>
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <section id="review" class="workspace-section" aria-labelledby="review-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Weekly review</p>
+              <h2 id="review-title">Readiness board</h2>
+            </div>
+            <button class="button secondary" id="generate-flashcards" type="button">Build Drill</button>
+          </div>
+
+          <div class="domain-grid" id="domain-grid"></div>
+          <div class="review-grid">
+            <div class="review-panel">
+              <div class="panel-header">
+                <h3>Flash drill</h3>
+                <span id="flash-count">0 cards</span>
+              </div>
+              <div id="flashcards" class="flash-list empty-state">Add a note or load the demo to generate active-recall cards.</div>
+            </div>
+            <div class="review-panel">
+              <div class="panel-header">
+                <h3>Knowledge gaps</h3>
+                <span>Auto detected</span>
+              </div>
+              <ul id="gap-list" class="gap-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="simulator" class="workspace-section" aria-labelledby="sim-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Incident simulator</p>
+              <h2 id="sim-title">Troubleshooting ticket</h2>
+            </div>
+            <button class="button primary" id="new-ticket" type="button">New Ticket</button>
+          </div>
+
+          <div class="sim-grid">
+            <article class="ticket-panel" id="ticket-panel">
+              <div class="ticket-meta">
+                <span id="ticket-id">Ticket standby</span>
+                <strong id="ticket-domain">Add notes</strong>
+              </div>
+              <h3 id="ticket-title">Generate a ticket from your current weak spot.</h3>
+              <p id="ticket-body">The simulator will use your recent captures and confidence ratings to create a realistic data center incident.</p>
+              <div class="ticket-tags" id="ticket-tags"></div>
+            </article>
+
+            <form class="response-panel" id="response-form">
+              <label for="ticket-response">How would you troubleshoot it?</label>
+              <textarea id="ticket-response" rows="9" placeholder="Write your first checks, safety considerations, commands, and escalation point."></textarea>
+              <div class="capture-controls">
+                <button class="button primary" type="submit">Grade Response</button>
+                <button class="button ghost" id="clear-response" type="button">Clear</button>
+              </div>
+              <div id="grade-output" class="grade-output empty-state">Your coaching feedback will show here.</div>
+            </form>
+          </div>
+        </section>
+
+        <section id="vault" class="workspace-section" aria-labelledby="vault-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Portable knowledge</p>
+              <h2 id="vault-title">Local vault</h2>
+            </div>
+            <div class="export-actions">
+              <button class="button secondary" id="export-md" type="button">Export Markdown</button>
+              <button class="button ghost danger" id="reset-vault" type="button">Reset</button>
+            </div>
+          </div>
+
+          <div class="vault-grid">
+            <div class="timeline-panel">
+              <div class="panel-header">
+                <h3>Captured notes</h3>
+                <span id="vault-count">0 total</span>
+              </div>
+              <div id="note-timeline" class="timeline empty-state">No notes captured yet.</div>
+            </div>
+            <div class="markdown-panel">
+              <div class="panel-header">
+                <h3>Markdown preview</h3>
+                <span>Copy/export ready</span>
+              </div>
+              <pre id="markdown-preview"># Data Center Flight Deck</pre>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="domain-card-template">
+      <article class="domain-card">
+        <div class="domain-topline">
+          <h3></h3>
+          <span></span>
+        </div>
+        <div class="meter"><i></i></div>
+        <label>
+          Confidence
+          <input type="range" min="1" max="5" value="3">
+        </label>
+        <ul></ul>
+      </article>
+    </template>
+
+    <script src="./app.js?v=2" defer></script>
+  </body>
+</html>

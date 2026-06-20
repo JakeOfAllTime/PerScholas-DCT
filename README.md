@@ -1,0 +1,53 @@
+# Data Center Flight Deck
+
+A local-first web app for Per Scholas Data Center Technician study. It turns messy class notes into structured review material, weak-spot tracking, flash drills, and realistic troubleshooting tickets.
+
+This is an independent student learning tool and is not official Per Scholas course material.
+
+## What it does
+
+- Captures messy class or lab notes by typing or browser voice input.
+- Distills notes into domains: Networking, Power, Cooling, Server Hardware, and Safety + Tools.
+- Tracks confidence by domain and highlights weak spots.
+- Generates flash drills from captured terms and open questions.
+- Creates realistic incident tickets and grades troubleshooting responses.
+- Exports the local vault as Markdown.
+- Runs as a dependency-free static web app.
+
+## Run locally
+
+```sh
+python3 -m http.server 5174
+```
+
+Then open:
+
+```text
+http://localhost:5174
+```
+
+## Phone use
+
+When your Mac and phone are on the same Wi-Fi network, run the server with:
+
+```sh
+python3 -m http.server 5174 --bind 0.0.0.0
+```
+
+Then open `http://YOUR_MAC_IP:5174` on your phone. Voice capture depends on browser support and microphone permissions.
+
+## Notes
+
+The current prototype stores everything in your browser with `localStorage`. Export Markdown regularly if you want a backup outside the browser.
+
+## Roadmap
+
+- Custom study tracks for Data Center Technician, Google IT Support, CompTIA A+, and interview/professionalism training.
+- User-editable domains, tags, and ticket templates.
+- Optional AI provider integration for deeper note distillation and coaching.
+- Import/export packs so classmates can share drills without sharing private notes.
+- A portfolio mode for turning labs into polished employer-facing writeups.
+
+## License
+
+MIT
