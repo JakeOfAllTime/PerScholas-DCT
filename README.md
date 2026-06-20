@@ -4,6 +4,8 @@ A local-first web app for Per Scholas Data Center Technician study. It turns mes
 
 This is an independent student learning tool and is not official Per Scholas course material.
 
+Live app: [https://perscholas-dct.vercel.app](https://perscholas-dct.vercel.app)
+
 ## What it does
 
 - Captures messy class or lab notes by typing or browser voice input.
@@ -44,7 +46,7 @@ The current prototype stores everything in your browser with `localStorage`, inc
 
 Use **Vault > Export Data** to download a full JSON backup. That file can be imported later with **Vault > Import Data**. Use **Export Markdown** or **Export Week** when you want a readable study review.
 
-Longer term, the best upgrade is optional sync so Mac and phone can share the same study history automatically.
+The Vercel deployment makes the app easy to open from any device, but it does not provide shared cloud storage by itself. Longer term, the best upgrade is optional sync so Mac and phone can share the same study history automatically.
 
 ## Roadmap
 
