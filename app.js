@@ -364,7 +364,7 @@ function renderSelectedDay() {
     const card = document.createElement("article");
     card.className = `topic-card status-${getStatus([topic])}`;
     card.innerHTML = `
-      <details open>
+      <details>
         <summary>
           <span>${escapeHtml(topic.title)}</span>
           <strong>${topic.confidence}/5</strong>

@@ -460,6 +460,38 @@ h3 {
   background: rgba(158, 240, 111, 0.08);
 }
 
+.week-status-compact {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.week-status-compact div {
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.week-status-compact span,
+.week-status-compact strong {
+  display: block;
+}
+
+.week-status-compact span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.week-status-compact strong {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
 .capture-grid,
 .week-grid-layout,
 .review-grid,
@@ -677,8 +709,13 @@ textarea:focus {
 
 .day-review {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   margin-top: 14px;
+}
+
+.day-review.empty-state {
+  grid-template-columns: 1fr;
 }
 
 .day-topic-form {
@@ -703,6 +740,10 @@ textarea:focus {
 .topic-card details {
   display: grid;
   gap: 12px;
+}
+
+.topic-card:has(details[open]) {
+  grid-column: 1 / -1;
 }
 
 .topic-card summary {
@@ -1146,6 +1187,10 @@ pre {
     padding-inline: 14px;
   }
 
+  .workspace-section {
+    padding-top: 18px;
+  }
+
   .deck-hero,
   .ops-overview {
     min-height: auto;
@@ -1167,6 +1212,32 @@ pre {
   .section-heading {
     align-items: start;
     flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .week-status-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .week-status-compact div {
+    min-height: 54px;
+    padding: 8px;
+  }
+
+  .week-status-compact div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .week-status-compact span {
+    font-size: 0.72rem;
+  }
+
+  .week-status-compact strong {
+    margin-top: 4px;
+    font-size: 0.86rem;
   }
 
   .domain-grid {
@@ -1188,6 +1259,7 @@ pre {
   .week-calendar {
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 5px;
+    margin-top: 10px;
   }
 
   .day-card {
@@ -1225,12 +1297,30 @@ pre {
     padding: 12px;
   }
 
+  .week-grid-layout {
+    gap: 10px;
+  }
+
   .day-topic-form {
+    margin-top: 10px;
     padding: 10px;
   }
 
   .day-topic-form textarea {
     min-height: 92px;
+  }
+
+  .day-review {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .day-review.empty-state {
+    grid-template-columns: 1fr;
+  }
+
+  .topic-card {
+    padding: 10px;
   }
 
   .confidence-row {
