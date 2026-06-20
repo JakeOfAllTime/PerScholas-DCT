@@ -58,16 +58,6 @@ const els = {
   overviewLow: document.querySelector("#overview-low"),
   overviewStrong: document.querySelector("#overview-strong"),
   nextDrill: document.querySelector("#next-drill"),
-  captureForm: document.querySelector("#capture-form"),
-  topicTitle: document.querySelector("#topic-title"),
-  noteInput: document.querySelector("#note-input"),
-  topicConfidence: document.querySelector("#topic-confidence"),
-  clearInput: document.querySelector("#clear-input"),
-  noteCount: document.querySelector("#note-count"),
-  ringValue: document.querySelector("#ring-value"),
-  signalRing: document.querySelector(".signal-ring"),
-  weakestArea: document.querySelector("#weakest-area"),
-  openQuestionCount: document.querySelector("#open-question-count"),
   weekRange: document.querySelector("#week-range"),
   weekNoteCount: document.querySelector("#week-note-count"),
   weekCalendar: document.querySelector("#week-calendar"),
@@ -293,7 +283,8 @@ function render() {
 }
 
 function renderNavigation() {
-  const active = location.hash || "#week";
+  const active = !location.hash || location.hash === "#capture" ? "#week" : location.hash;
+  if (location.hash === "#capture") history.replaceState(null, "", "#week");
   els.sections.forEach((section) => {
     section.classList.toggle("active-section", `#${section.id}` === active);
   });
@@ -310,15 +301,10 @@ function renderStats() {
   const strong = state.topics.filter((topic) => Number(topic.confidence) >= 4).length;
 
   els.readinessScore.textContent = `${percent}%`;
-  els.ringValue.textContent = `${percent}%`;
-  els.signalRing.style.setProperty("--value", `${percent * 3.6}deg`);
   els.overviewCount.textContent = `${todayTopics.length} ${todayTopics.length === 1 ? "topic" : "topics"}`;
   els.overviewLow.textContent = String(todayTopics.filter((topic) => Number(topic.confidence) <= 3).length);
   els.overviewStrong.textContent = String(todayTopics.filter((topic) => Number(topic.confidence) >= 4).length);
-  els.noteCount.textContent = `${todayTopics.length} ${todayTopics.length === 1 ? "topic" : "topics"}`;
   els.vaultCount.textContent = `${state.topics.length} total`;
-  els.weakestArea.textContent = weak ? weak.title : "None yet";
-  els.openQuestionCount.textContent = String(low);
   els.nextDrill.textContent = weak ? weak.title : "Add topic";
 }
 
@@ -659,20 +645,6 @@ function handleTopicEdits(event) {
   if (confidence) updateTopic(confidence.dataset.topicConfidence, { confidence: Number(confidence.value) });
 }
 
-els.captureForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  addTopic({
-    title: els.topicTitle.value,
-    details: els.noteInput.value,
-    confidence: els.topicConfidence.value,
-    date: dateKey(new Date())
-  });
-  els.topicTitle.value = "";
-  els.noteInput.value = "";
-  els.topicConfidence.value = "3";
-  location.hash = "#week";
-});
-
 els.dayTopicForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addTopic({
@@ -684,13 +656,6 @@ els.dayTopicForm.addEventListener("submit", (event) => {
   els.dayTopicTitle.value = "";
   els.dayTopicNotes.value = "";
   els.dayTopicConfidence.value = "3";
-});
-
-els.clearInput.addEventListener("click", () => {
-  els.topicTitle.value = "";
-  els.noteInput.value = "";
-  els.topicConfidence.value = "3";
-  els.topicTitle.focus();
 });
 
 document.querySelector("#seed-demo")?.addEventListener("click", () => {

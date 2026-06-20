@@ -528,6 +528,16 @@ textarea {
   outline: none;
 }
 
+.day-topic-form input[type="text"],
+.day-topic-form textarea,
+.topic-card input[type="text"],
+.topic-card textarea {
+  color: #d8f7ef;
+  background: rgba(0, 0, 0, 0.34);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95rem;
+}
+
 textarea {
   resize: vertical;
   min-height: 140px;
@@ -1139,7 +1149,15 @@ pre {
   .deck-hero,
   .ops-overview {
     min-height: auto;
-    padding-top: 34px;
+    padding-top: 14px;
+  }
+
+  .rack-stage {
+    display: none;
+  }
+
+  .overview-panel {
+    padding: 12px;
   }
 
   h1 {
@@ -1157,18 +1175,62 @@ pre {
 
   .week-controls {
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .week-controls .button {
-    flex: 1 1 90px;
+    min-height: 38px;
+    padding-inline: 6px;
   }
 
   .week-calendar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .day-card {
-    min-height: 118px;
+    min-height: 72px;
+    gap: 3px;
+    padding: 7px 5px;
+  }
+
+  .day-card strong {
+    font-size: 1.08rem;
+  }
+
+  .day-card span {
+    font-size: 0.72rem;
+  }
+
+  .day-card small {
+    font-size: 0.62rem;
+    line-height: 1.15;
+  }
+
+  .domain-dots {
+    gap: 3px;
+    min-height: 7px;
+  }
+
+  .domain-dots i {
+    width: 6px;
+    height: 6px;
+    box-shadow: none;
+  }
+
+  .day-panel,
+  .week-panel {
+    padding: 12px;
+  }
+
+  .day-topic-form {
+    padding: 10px;
+  }
+
+  .day-topic-form textarea {
+    min-height: 92px;
   }
 
   .confidence-row {

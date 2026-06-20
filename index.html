@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#101315">
     <title>Data Center Flight Deck</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=6">
-    <link rel="stylesheet" href="./styles.css?v=6">
+    <link rel="manifest" href="./manifest.webmanifest?v=7">
+    <link rel="stylesheet" href="./styles.css?v=7">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#capture" aria-label="Data Center Flight Deck home">
+        <a class="brand" href="#week" aria-label="Data Center Flight Deck home">
           <span class="brand-mark" aria-hidden="true">
             <span></span><span></span><span></span>
           </span>
@@ -21,8 +21,7 @@
           </span>
         </a>
         <nav class="nav-tabs" aria-label="Primary">
-          <a class="nav-link is-active" href="#capture">Capture</a>
-          <a class="nav-link" href="#week">Week</a>
+          <a class="nav-link is-active" href="#week">Week</a>
           <a class="nav-link" href="#review">Review</a>
           <a class="nav-link" href="#simulator">Sim</a>
           <a class="nav-link" href="#vault">Vault</a>
@@ -80,54 +79,7 @@
           </div>
         </section>
 
-        <section id="capture" class="workspace-section active-section" aria-labelledby="capture-title">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Quick capture</p>
-              <h2 id="capture-title">Add today</h2>
-            </div>
-            <span class="status-pill" id="storage-status">Local vault ready</span>
-          </div>
-
-          <div class="capture-grid">
-            <form class="capture-panel topic-form" id="capture-form">
-              <label for="topic-title">Topic title</label>
-              <input id="topic-title" name="title" type="text" placeholder="Example: Subnetting practice, UPS load math, STAR interview answers">
-              <label for="note-input">Notes</label>
-              <textarea id="note-input" name="note" rows="8" placeholder="What was covered? What should you remember? What still feels shaky?"></textarea>
-              <label for="topic-confidence">
-                Confidence
-                <input id="topic-confidence" type="range" min="1" max="5" value="3">
-              </label>
-              <div class="capture-controls">
-                <button class="button primary" type="submit">Add Topic</button>
-                <button class="button ghost" id="clear-input" type="button">Clear</button>
-              </div>
-            </form>
-
-            <aside class="insight-panel" aria-labelledby="today-title">
-              <div class="panel-header">
-                <h3 id="today-title">Today status</h3>
-                <span id="note-count">0 topics</span>
-              </div>
-              <div class="signal-ring" aria-label="Current readiness">
-                <span id="ring-value">0%</span>
-              </div>
-              <dl class="mini-stats">
-                <div>
-                  <dt>Weakest area</dt>
-                  <dd id="weakest-area">None yet</dd>
-                </div>
-                <div>
-                  <dt>Needs review</dt>
-                  <dd id="open-question-count">0</dd>
-                </div>
-              </dl>
-            </aside>
-          </div>
-        </section>
-
-        <section id="week" class="workspace-section" aria-labelledby="week-title">
+        <section id="week" class="workspace-section active-section" aria-labelledby="week-title">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Calendar log</p>
@@ -139,6 +91,7 @@
               <button class="button ghost" id="next-week" type="button">Next</button>
               <button class="button ghost" id="export-week" type="button">Export Week</button>
             </div>
+            <span class="status-pill" id="storage-status">Local vault ready</span>
           </div>
 
           <div class="week-grid-layout">
@@ -279,6 +232,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=6" defer></script>
+    <script src="./app.js?v=7" defer></script>
   </body>
 </html>
