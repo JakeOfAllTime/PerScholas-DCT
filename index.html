@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#101315">
     <title>Data Center Flight Deck</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=4">
-    <link rel="stylesheet" href="./styles.css?v=4">
+    <link rel="manifest" href="./manifest.webmanifest?v=5">
+    <link rel="stylesheet" href="./styles.css?v=5">
   </head>
   <body>
     <div class="app-shell">
@@ -129,6 +129,7 @@
               <button class="button ghost" id="prev-week" type="button">Prev</button>
               <button class="button secondary" id="today-week" type="button">Today</button>
               <button class="button ghost" id="next-week" type="button">Next</button>
+              <button class="button ghost" id="export-week" type="button">Export Week</button>
             </div>
           </div>
 
@@ -242,6 +243,25 @@
               </div>
               <pre id="markdown-preview"># Data Center Flight Deck</pre>
             </div>
+            <div class="backup-panel">
+              <div class="panel-header">
+                <h3>Data backup</h3>
+                <span id="backup-status">Browser vault</span>
+              </div>
+              <p class="field-note">Download a full JSON vault for safekeeping. Importing a vault replaces the current browser copy after confirmation.</p>
+              <div class="export-actions">
+                <button class="button primary" id="export-data" type="button">Export Data</button>
+                <button class="button secondary" id="import-data-trigger" type="button">Import Data</button>
+                <input id="import-data" type="file" accept="application/json,.json" hidden>
+              </div>
+            </div>
+            <div class="archive-panel">
+              <div class="panel-header">
+                <h3>Weekly archive</h3>
+                <span id="archive-count">0 weeks</span>
+              </div>
+              <div id="weekly-archive" class="archive-list empty-state">Captured weeks will appear here.</div>
+            </div>
           </div>
         </section>
       </main>
@@ -262,6 +282,6 @@
       </article>
     </template>
 
-    <script src="./app.js?v=4" defer></script>
+    <script src="./app.js?v=5" defer></script>
   </body>
 </html>

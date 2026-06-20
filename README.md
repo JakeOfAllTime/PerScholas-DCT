@@ -12,7 +12,8 @@ This is an independent student learning tool and is not official Per Scholas cou
 - Groups captures by day in a weekly calendar for review.
 - Generates flash drills from captured terms and open questions.
 - Creates realistic incident tickets and grades troubleshooting responses.
-- Exports the local vault as Markdown.
+- Exports the full local vault as JSON and Markdown.
+- Exports individual weeks as Markdown study reviews.
 - Runs as a dependency-free static web app.
 
 ## Run locally
@@ -39,9 +40,11 @@ Then open `http://YOUR_MAC_IP:5174` on your phone. Voice capture depends on brow
 
 ## Notes
 
-The current prototype stores everything in your browser with `localStorage`, including notes, confidence ratings, and the calendar history. That makes the app simple and private, but the data is tied to the browser/device. Export Markdown regularly if you want a backup outside the browser.
+The current prototype stores everything in your browser with `localStorage`, including notes, confidence ratings, and the calendar history. That makes the app simple and private, but the data is tied to the browser/device.
 
-Longer term, the best upgrade is a portable vault: downloadable JSON/Markdown files first, then optional sync so Mac and phone can share the same study history.
+Use **Vault > Export Data** to download a full JSON backup. That file can be imported later with **Vault > Import Data**. Use **Export Markdown** or **Export Week** when you want a readable study review.
+
+Longer term, the best upgrade is optional sync so Mac and phone can share the same study history automatically.
 
 ## Roadmap
 

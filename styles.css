@@ -491,6 +491,8 @@ h3 {
 .response-panel,
 .timeline-panel,
 .markdown-panel,
+.backup-panel,
+.archive-panel,
 .domain-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -542,7 +544,9 @@ textarea:focus {
 .review-panel,
 .ticket-panel,
 .timeline-panel,
-.markdown-panel {
+.markdown-panel,
+.backup-panel,
+.archive-panel {
   padding: 16px;
 }
 
@@ -908,6 +912,60 @@ input[type="range"] {
 .note-card .tags span {
   color: var(--cyan);
   font-size: 0.8rem;
+}
+
+.backup-panel,
+.archive-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.archive-list {
+  display: grid;
+  gap: 10px;
+}
+
+.archive-week {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.archive-week-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.archive-week strong,
+.archive-week span {
+  display: block;
+}
+
+.archive-week span,
+.archive-week p {
+  color: var(--muted);
+}
+
+.archive-week p {
+  margin-bottom: 0;
+  line-height: 1.45;
+}
+
+.archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.archive-actions .button {
+  min-height: 36px;
+  padding-inline: 12px;
 }
 
 .markdown-panel {

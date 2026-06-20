@@ -121,6 +121,7 @@ const els = {
   prevWeek: document.querySelector("#prev-week"),
   todayWeek: document.querySelector("#today-week"),
   nextWeek: document.querySelector("#next-week"),
+  exportWeek: document.querySelector("#export-week"),
   domainGrid: document.querySelector("#domain-grid"),
   noteCount: document.querySelector("#note-count"),
   vaultCount: document.querySelector("#vault-count"),
@@ -148,6 +149,12 @@ const els = {
   noteTimeline: document.querySelector("#note-timeline"),
   markdownPreview: document.querySelector("#markdown-preview"),
   exportMd: document.querySelector("#export-md"),
+  exportData: document.querySelector("#export-data"),
+  importDataTrigger: document.querySelector("#import-data-trigger"),
+  importData: document.querySelector("#import-data"),
+  backupStatus: document.querySelector("#backup-status"),
+  weeklyArchive: document.querySelector("#weekly-archive"),
+  archiveCount: document.querySelector("#archive-count"),
   resetVault: document.querySelector("#reset-vault")
 };
 
@@ -155,7 +162,8 @@ function loadState() {
   const fallback = {
     notes: [],
     confidence: Object.fromEntries(domains.map((domain) => [domain.id, 3])),
-    flashcards: []
+    flashcards: [],
+    lastBackupAt: null
   };
 
   try {
@@ -174,6 +182,9 @@ function loadState() {
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   els.storageStatus.textContent = "Saved locally";
+  if (els.backupStatus) {
+    els.backupStatus.textContent = state.lastBackupAt ? `Backed up ${formatShortDate(state.lastBackupAt)}` : "Browser vault";
+  }
   window.setTimeout(() => {
     els.storageStatus.textContent = "Local vault ready";
   }, 1200);
@@ -220,6 +231,14 @@ function addDays(date, days) {
 
 function formatShortDate(date) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
+
+function weekKey(date) {
+  return dateKey(startOfWeek(date));
+}
+
+function weekLabel(weekStart) {
+  return `${formatShortDate(weekStart)} - ${formatShortDate(addDays(weekStart, 6))}`;
 }
 
 function detectDomains(text) {
@@ -363,6 +382,7 @@ function render() {
   renderFlashcards();
   renderTimeline();
   renderMarkdown();
+  renderArchive();
 }
 
 function renderNavigation() {
@@ -434,7 +454,7 @@ function renderWeek() {
     return weekDays.some((day) => dateKey(day) === key);
   });
 
-  els.weekRange.textContent = `${formatShortDate(visibleWeekStart)} - ${formatShortDate(weekEnd)}`;
+  els.weekRange.textContent = weekLabel(visibleWeekStart);
   els.weekNoteCount.textContent = `${weekNotes.length} ${weekNotes.length === 1 ? "note" : "notes"}`;
   els.weekCalendar.innerHTML = "";
 
@@ -469,6 +489,18 @@ function renderWeek() {
 
 function notesForDay(key) {
   return state.notes.filter((note) => dateKey(note.createdAt) === key);
+}
+
+function notesForWeek(weekStart) {
+  const startKey = dateKey(weekStart);
+  const weekDays = Array.from({ length: 7 }, (_, index) => dateKey(addDays(weekStart, index)));
+  return state.notes.filter((note) => weekDays.includes(dateKey(note.createdAt)) || weekKey(note.createdAt) === startKey);
+}
+
+function getArchiveWeeks() {
+  return [...new Set(state.notes.map((note) => weekKey(note.createdAt)))]
+    .map(dateFromKey)
+    .sort((a, b) => b - a);
 }
 
 function renderSelectedDay() {
@@ -594,6 +626,49 @@ function renderMarkdown() {
   els.markdownPreview.textContent = buildMarkdown();
 }
 
+function renderArchive() {
+  const weeks = getArchiveWeeks();
+  els.archiveCount.textContent = `${weeks.length} ${weeks.length === 1 ? "week" : "weeks"}`;
+  els.backupStatus.textContent = state.lastBackupAt ? `Backed up ${formatShortDate(state.lastBackupAt)}` : "Browser vault";
+  els.weeklyArchive.innerHTML = "";
+  els.weeklyArchive.classList.toggle("empty-state", !weeks.length);
+
+  if (!weeks.length) {
+    els.weeklyArchive.textContent = "Captured weeks will appear here.";
+    return;
+  }
+
+  weeks.forEach((weekStart) => {
+    const notes = notesForWeek(weekStart);
+    const questions = notes.flatMap((note) => note.questions);
+    const domainCounts = domains
+      .map((domain) => ({
+        domain,
+        count: notes.filter((note) => note.domains.includes(domain.id)).length
+      }))
+      .filter((item) => item.count)
+      .sort((a, b) => b.count - a.count);
+
+    const card = document.createElement("article");
+    card.className = "archive-week";
+    card.innerHTML = `
+      <div class="archive-week-top">
+        <div>
+          <strong>${escapeHtml(weekLabel(weekStart))}</strong>
+          <span>${notes.length} ${notes.length === 1 ? "note" : "notes"} · ${questions.length} open ${questions.length === 1 ? "question" : "questions"}</span>
+        </div>
+        <div class="domain-dots">${domainCounts.map(({ domain }) => `<i style="background:${domain.color}; color:${domain.color}"></i>`).join("")}</div>
+      </div>
+      <p>${domainCounts.length ? domainCounts.map(({ domain, count }) => `${domain.name}: ${count}`).join(" · ") : "No domain signals yet."}</p>
+      <div class="archive-actions">
+        <button class="button ghost" type="button" data-open-week="${dateKey(weekStart)}">Open</button>
+        <button class="button secondary" type="button" data-export-week="${dateKey(weekStart)}">Export</button>
+      </div>
+    `;
+    els.weeklyArchive.append(card);
+  });
+}
+
 function buildMarkdown() {
   const lines = ["# Data Center Flight Deck", "", `Readiness: ${readiness()}%`, ""];
 
@@ -631,6 +706,84 @@ function buildMarkdown() {
   });
 
   return lines.join("\n");
+}
+
+function buildWeekMarkdown(weekStart) {
+  const notes = notesForWeek(weekStart);
+  const lines = [`# Data Center Flight Deck - ${weekLabel(weekStart)}`, "", `Readiness: ${readiness()}%`, ""];
+  const weekQuestions = notes.flatMap((note) => note.questions);
+
+  lines.push("## Confidence");
+  domains.forEach((domain) => {
+    const count = notes.filter((note) => note.domains.includes(domain.id)).length;
+    lines.push(`- ${domain.name}: ${state.confidence[domain.id] || 3}/5 (${count} notes this week)`);
+  });
+  lines.push("");
+
+  lines.push("## Study Priorities");
+  if (!weekQuestions.length) {
+    lines.push("- No open questions captured this week.");
+  } else {
+    weekQuestions.forEach((question) => lines.push(`- ${question}`));
+  }
+  lines.push("");
+
+  lines.push("## Daily Notes");
+  if (!notes.length) lines.push("- No notes captured this week.");
+
+  Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)).forEach((day) => {
+    const dayNotes = notesForDay(dateKey(day));
+    if (!dayNotes.length) return;
+    lines.push(`### ${new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(day)}`);
+    lines.push("");
+    dayNotes.forEach((note) => {
+      lines.push(`- **${note.domains.map((id) => domains.find((domain) => domain.id === id)?.name || id).join(", ")}:** ${note.summary}`);
+      if (note.questions.length) {
+        note.questions.forEach((question) => lines.push(`  - Question: ${question}`));
+      }
+    });
+    lines.push("");
+  });
+
+  return lines.join("\n");
+}
+
+function buildVaultPayload() {
+  return {
+    app: "Data Center Flight Deck",
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    domains: domains.map(({ id, name, color }) => ({ id, name, color })),
+    state
+  };
+}
+
+function normalizeImportedState(imported) {
+  const incoming = imported?.state || imported;
+  if (!incoming || !Array.isArray(incoming.notes)) {
+    throw new Error("Backup file does not contain a valid notes array.");
+  }
+
+  return {
+    notes: incoming.notes.filter((note) => note && note.createdAt && note.raw),
+    confidence: {
+      ...Object.fromEntries(domains.map((domain) => [domain.id, 3])),
+      ...(incoming.confidence || {})
+    },
+    flashcards: Array.isArray(incoming.flashcards) ? incoming.flashcards : [],
+    lastBackupAt: incoming.lastBackupAt || imported.exportedAt || null
+  };
+}
+
+function downloadText(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function createTicket() {
@@ -720,13 +873,47 @@ function setupVoice() {
 }
 
 function downloadMarkdown() {
-  const blob = new Blob([buildMarkdown()], { type: "text/markdown" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `data-center-flight-deck-${new Date().toISOString().slice(0, 10)}.md`;
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadText(`data-center-flight-deck-${new Date().toISOString().slice(0, 10)}.md`, buildMarkdown(), "text/markdown");
+}
+
+function downloadWeekMarkdown(weekStart = visibleWeekStart) {
+  downloadText(`data-center-flight-deck-week-${dateKey(weekStart)}.md`, buildWeekMarkdown(weekStart), "text/markdown");
+}
+
+function downloadVaultData() {
+  state.lastBackupAt = new Date().toISOString();
+  saveState();
+  downloadText(
+    `data-center-flight-deck-vault-${new Date().toISOString().slice(0, 10)}.json`,
+    JSON.stringify(buildVaultPayload(), null, 2),
+    "application/json"
+  );
+  renderArchive();
+}
+
+function importVaultData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(String(reader.result || ""));
+      const nextState = normalizeImportedState(imported);
+      const ok = window.confirm(`Import ${nextState.notes.length} notes and replace this browser vault?`);
+      if (!ok) return;
+      state = nextState;
+      const latest = state.notes[0]?.createdAt ? new Date(state.notes[0].createdAt) : new Date();
+      selectedDateKey = dateKey(latest);
+      visibleWeekStart = startOfWeek(latest);
+      saveState();
+      buildFlashcards();
+      render();
+      location.hash = "#vault";
+    } catch (error) {
+      window.alert(`Import failed: ${error.message}`);
+    } finally {
+      els.importData.value = "";
+    }
+  };
+  reader.readAsText(file);
 }
 
 els.captureForm.addEventListener("submit", (event) => {
@@ -777,6 +964,10 @@ els.nextWeek.addEventListener("click", () => {
   renderWeek();
 });
 
+els.exportWeek.addEventListener("click", () => {
+  downloadWeekMarkdown(visibleWeekStart);
+});
+
 els.generateFlashcards.addEventListener("click", buildFlashcards);
 els.newTicket.addEventListener("click", createTicket);
 
@@ -794,6 +985,32 @@ els.clearResponse.addEventListener("click", () => {
 });
 
 els.exportMd.addEventListener("click", downloadMarkdown);
+els.exportData.addEventListener("click", downloadVaultData);
+
+els.importDataTrigger.addEventListener("click", () => {
+  els.importData.click();
+});
+
+els.importData.addEventListener("change", () => {
+  const file = els.importData.files?.[0];
+  if (file) importVaultData(file);
+});
+
+els.weeklyArchive.addEventListener("click", (event) => {
+  const openButton = event.target.closest("[data-open-week]");
+  const exportButton = event.target.closest("[data-export-week]");
+
+  if (openButton) {
+    visibleWeekStart = dateFromKey(openButton.dataset.openWeek);
+    selectedDateKey = dateKey(visibleWeekStart);
+    location.hash = "#week";
+    render();
+  }
+
+  if (exportButton) {
+    downloadWeekMarkdown(dateFromKey(exportButton.dataset.exportWeek));
+  }
+});
 
 els.resetVault.addEventListener("click", () => {
   const ok = window.confirm("Reset all local notes, ratings, and drills?");
